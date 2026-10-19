@@ -1,4 +1,4 @@
-package com.feriapp.backend.ui
+package edu.uadeapps.feriapp.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -23,7 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-// El enum vive acá, junto a su componente
+
 enum class PantallasFooter {
     FERIAS, RESERVAS, PERFIL
 }
