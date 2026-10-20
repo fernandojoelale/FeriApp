@@ -13,9 +13,9 @@ data class Puesto(
     val id: Long = 0,
     @ManyToOne
     @JoinColumn(name = "feria_id")
-    val feria: Feria, // Relación con la feria[cite: 22]
+    val feria: Feria,
     val numero: Int,
-    val posX: Int, // Posición en el mapa del predio[cite: 22]
+    val posX: Int,
     val posY: Int,
     @Enumerated(EnumType.STRING)
     val estado: EstadoPuesto

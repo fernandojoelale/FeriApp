@@ -15,7 +15,7 @@ import androidx.compose.ui.Modifier
 
 
 @Composable
-fun MainScreen() {
+fun MainScreen(onLoginClick: () -> Unit) {
     var seccionActual by remember { mutableStateOf(PantallasFooter.FERIAS) }
 
     Scaffold(
@@ -27,7 +27,7 @@ fun MainScreen() {
                 }
             )
         }
-    ) { paddingValores ->
+    )  { paddingValores ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -35,10 +35,7 @@ fun MainScreen() {
         ) {
             when (seccionActual) {
                 PantallasFooter.FERIAS -> {
-                    Text(
-                        text = "Aquí se mostrará la lista de Ferias",
-                        modifier = Modifier.align(Alignment.Center)
-                    )
+                    FeriasScreen(onLoginClick = onLoginClick)
                 }
                 PantallasFooter.RESERVAS -> {
                     Text(
