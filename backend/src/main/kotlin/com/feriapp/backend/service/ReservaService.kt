@@ -43,7 +43,7 @@ class ReservaService(
             estado = EstadoReserva.CONFIRMADA
         )
 
-        // TODO: Acá iría la notificación push (RF04)[cite: 8]
+
 
         return reservaRepository.save(nuevaReserva)
     }
