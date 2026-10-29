@@ -1,7 +1,7 @@
 package com.feriapp.backend.controller
 
 import com.feriapp.backend.dto.CrearFeriaRequest
-import com.feriapp.backend.model.Feria
+import com.feriapp.backend.dto.FeriaResponseDto
 import com.feriapp.backend.service.FeriaService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -13,14 +13,13 @@ class FeriaController(
 ) {
 
     @GetMapping
-    fun obtenerFerias(): ResponseEntity<List<Feria>> {
+    fun obtenerFerias(): ResponseEntity<List<FeriaResponseDto>> {
         val ferias = feriaService.obtenerTodas()
         return ResponseEntity.ok(ferias)
     }
 
-
     @PostMapping
-    fun crearFeria(@RequestBody request: CrearFeriaRequest): ResponseEntity<Feria> {
+    fun crearFeria(@RequestBody request: CrearFeriaRequest): ResponseEntity<FeriaResponseDto> {
         val nuevaFeria = feriaService.crearFeria(request)
         return ResponseEntity.ok(nuevaFeria)
     }
