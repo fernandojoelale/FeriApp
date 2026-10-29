@@ -1,6 +1,8 @@
 package com.feriapp.backend.service
 
 import com.feriapp.backend.dto.CrearFeriaRequest
+import com.feriapp.backend.dto.FeriaResponseDto
+import com.feriapp.backend.dto.toDto
 import com.feriapp.backend.model.EstadoPuesto
 import com.feriapp.backend.model.Feria
 import com.feriapp.backend.model.Puesto
@@ -16,10 +18,16 @@ class FeriaService(
     private val usuarioRepository: UsuarioRepository,
     private val puestoRepository: PuestoRepository
 ) {
-    fun obtenerTodas(): List<Feria> = feriaRepository.findAll()
+    fun obtenerTodas(): List<FeriaResponseDto> {
+        val ferias = feriaRepository.findAll()
+        return ferias.map { feria ->
+            val puestosLibres = puestoRepository.countByFeriaIdAndEstado(feria.id, EstadoPuesto.DISPONIBLE)
+            feria.toDto(puestosLibres)
+        }
+    }
 
     @Transactional // si algo falla, se deshace toda la operacion
-    fun crearFeria(request: CrearFeriaRequest): Feria {
+    fun crearFeria(request: CrearFeriaRequest): FeriaResponseDto {
         val organizador = usuarioRepository.findById(request.organizadorId)
             .orElseThrow { Exception("Organizador no encontrado") }
 
@@ -39,7 +47,6 @@ class FeriaService(
 
         val feriaGuardada = feriaRepository.save(nuevaFeria)
 
-
         for (i in 1..request.cantidadPuestos) {
             val nuevoPuesto = Puesto(
                 feria = feriaGuardada,
@@ -51,6 +58,7 @@ class FeriaService(
             puestoRepository.save(nuevoPuesto)
         }
 
-        return feriaGuardada
+        val puestosLibres = puestoRepository.countByFeriaIdAndEstado(feriaGuardada.id, EstadoPuesto.DISPONIBLE)
+        return feriaGuardada.toDto(puestosLibres)
     }
 }

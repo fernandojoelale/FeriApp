@@ -12,6 +12,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import edu.uadeapps.feriapp.ui.ferias.FeriasScreen
 
 
 @Composable
