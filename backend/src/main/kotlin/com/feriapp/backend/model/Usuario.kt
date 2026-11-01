@@ -13,6 +13,7 @@ data class Usuario(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,
     val nombre: String,
+    val password: String,
     val email: String,
     @Enumerated(EnumType.STRING)
     val rol: RolUsuario,
