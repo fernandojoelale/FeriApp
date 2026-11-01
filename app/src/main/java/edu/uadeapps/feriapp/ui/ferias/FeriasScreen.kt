@@ -42,7 +42,7 @@ fun FeriasScreen(
     viewModel: FeriasViewModel = viewModel(factory = FeriasViewModel.Factory),
     onLoginClick: () -> Unit
 ) {
-    // Escuchamos los cambios del ViewModel
+
     val uiState by viewModel.uiState.collectAsState()
 
     var searchQuery by remember { mutableStateOf("") }
