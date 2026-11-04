@@ -1,5 +1,6 @@
 package edu.uadeapps.feriapp.data.remote
 
+import edu.uadeapps.feriapp.BuildConfig
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -8,8 +9,8 @@ import java.util.concurrent.TimeUnit
 object RetrofitClient {
 
 
-    private const val BASE_URL = //CAMBIAR POR IP LOCAL DEL MOMENTO
-        "http://192.168.0.58:8080/"
+    // Se configura en local.properties (api.baseUrl). Ver app/build.gradle.kts.
+    private val BASE_URL = BuildConfig.API_BASE_URL
 
 
     private val okHttpClient = OkHttpClient.Builder()

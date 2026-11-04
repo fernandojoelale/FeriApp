@@ -1,6 +1,8 @@
 package com.feriapp.backend.service
 
 import com.feriapp.backend.dto.ReservaRequest
+import com.feriapp.backend.exception.PuestoYaReservadoException
+import com.feriapp.backend.exception.RecursoNoEncontradoException
 import com.feriapp.backend.model.EstadoPuesto
 import com.feriapp.backend.model.EstadoReserva
 import com.feriapp.backend.model.Reserva
@@ -21,14 +23,14 @@ class ReservaService(
     @Transactional // garantiza que no se reserve dos veces
     fun reservarPuesto(request: ReservaRequest): Reserva {
         val puesto = puestoRepository.findById(request.puestoId)
-            .orElseThrow { Exception("Puesto no encontrado") }
+            .orElseThrow { RecursoNoEncontradoException("Puesto no encontrado") }
 
         val feriante = usuarioRepository.findById(request.ferianteId)
-            .orElseThrow { Exception("Feriante no encontrado") }
+            .orElseThrow { RecursoNoEncontradoException("Feriante no encontrado") }
 
         // Validar que esté libre
         if (puesto.estado != EstadoPuesto.DISPONIBLE) {
-            throw Exception("El puesto ya está reservado")
+            throw PuestoYaReservadoException()
         }
 
         // Marcar puesto como reservado

@@ -1,6 +1,16 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+}
+
+// URL del backend. Por defecto: emulador (10.0.2.2 = tu PC). Para un celular real o
+// otra red, agregar en local.properties (que NO se sube a git):  api.baseUrl=http://192.168.0.58:8080/
+val apiBaseUrl: String = Properties().let { props ->
+    val archivo = rootProject.file("local.properties")
+    if (archivo.exists()) archivo.inputStream().use { props.load(it) }
+    props.getProperty("api.baseUrl") ?: "http://10.0.2.2:8080/"
 }
 
 android {
@@ -12,9 +22,11 @@ android {
     defaultConfig {
         applicationId = "edu.uadeapps.feriapp"
         minSdk = 26
-        targetSdk = 37
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
+
+        buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -32,6 +44,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 

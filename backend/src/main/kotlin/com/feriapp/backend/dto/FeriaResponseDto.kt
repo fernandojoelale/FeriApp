@@ -1,11 +1,11 @@
 package com.feriapp.backend.dto
 
 import com.feriapp.backend.model.Feria
-import com.feriapp.backend.model.Usuario
 
 data class FeriaResponseDto(
     val id: Long,
-    val organizador: Usuario,
+    val organizadorId: Long,
+    val organizadorNombre: String,
     val nombre: String,
     val fecha: String,
     val horaInicio: String,
@@ -21,7 +21,8 @@ data class FeriaResponseDto(
 
 fun Feria.toDto(puestosLibres: Int): FeriaResponseDto = FeriaResponseDto(
     id = this.id,
-    organizador = this.organizador,
+    organizadorId = this.organizador.id,
+    organizadorNombre = this.organizador.nombre,
     nombre = this.nombre,
     fecha = this.fecha,
     horaInicio = this.horaInicio,

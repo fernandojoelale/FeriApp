@@ -1,7 +1,8 @@
 package com.feriapp.backend.controller
 
 import com.feriapp.backend.dto.ReservaRequest
-import com.feriapp.backend.model.Reserva
+import com.feriapp.backend.dto.ReservaResponseDto
+import com.feriapp.backend.dto.toDto
 import com.feriapp.backend.service.ReservaService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -12,14 +13,8 @@ class ReservaController(
     private val reservaService: ReservaService
 ) {
 
+    // Los errores (404 / 409) los traduce ManejadorErrores.
     @PostMapping
-    fun reservarPuesto(@RequestBody request: ReservaRequest): ResponseEntity<Reserva> {
-        return try {
-            val reserva = reservaService.reservarPuesto(request)
-            ResponseEntity.ok(reserva)
-        } catch (e: Exception) {
-            // Si el puesto ya está ocupado, devuelve un error 400 (Bad Request)
-            ResponseEntity.badRequest().build()
-        }
-    }
+    fun reservarPuesto(@RequestBody request: ReservaRequest): ResponseEntity<ReservaResponseDto> =
+        ResponseEntity.ok(reservaService.reservarPuesto(request).toDto())
 }

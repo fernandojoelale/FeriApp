@@ -3,6 +3,7 @@ package com.feriapp.backend.service
 import com.feriapp.backend.dto.CrearFeriaRequest
 import com.feriapp.backend.dto.FeriaResponseDto
 import com.feriapp.backend.dto.toDto
+import com.feriapp.backend.exception.RecursoNoEncontradoException
 import com.feriapp.backend.model.EstadoPuesto
 import com.feriapp.backend.model.Feria
 import com.feriapp.backend.model.Puesto
@@ -29,7 +30,7 @@ class FeriaService(
     @Transactional // si algo falla, se deshace toda la operacion
     fun crearFeria(request: CrearFeriaRequest): FeriaResponseDto {
         val organizador = usuarioRepository.findById(request.organizadorId)
-            .orElseThrow { Exception("Organizador no encontrado") }
+            .orElseThrow { RecursoNoEncontradoException("Organizador no encontrado") }
 
         val nuevaFeria = Feria(
             organizador = organizador,
