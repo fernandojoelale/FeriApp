@@ -18,6 +18,11 @@ class AuthService(
     private val passwordEncoder: PasswordEncoder
 ) {
     fun registrarUsuario(request: RegisterRequest): AuthResponse {
+        if (request.nombre.isBlank()) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Ingresá tu nombre")
+        if (!request.email.contains("@")) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Ingresá un email válido")
+        if (request.password.length < 6) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "La contraseña debe tener al menos 6 caracteres")
+        }
         if (usuarioRepository.findByEmail(request.email) != null) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "El email ya está registrado")
         }
@@ -36,7 +41,7 @@ class AuthService(
         )
 
         val token = jwtService.generarToken(nuevoUsuario)
-        return AuthResponse(token = token, rol = nuevoUsuario.rol.name)
+        return nuevoUsuario.toAuthResponse(token)
     }
 
     fun autenticarUsuario(request: AuthRequest): AuthResponse {
@@ -51,6 +56,14 @@ class AuthService(
 
         // 3. Generar token y armar respuesta
         val token = jwtService.generarToken(usuario)
-        return AuthResponse(token = token, rol = usuario.rol.name)
+        return usuario.toAuthResponse(token)
     }
+
+    private fun Usuario.toAuthResponse(token: String) = AuthResponse(
+        token = token,
+        rol = rol.name,
+        nombre = nombre,
+        email = email,
+        usuarioId = id
+    )
 }

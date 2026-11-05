@@ -10,6 +10,6 @@ class FeriApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        container = AppDataContainer()
+        container = AppDataContainer(this)
     }
 }

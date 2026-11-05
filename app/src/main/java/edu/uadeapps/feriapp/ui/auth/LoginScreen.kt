@@ -3,7 +3,9 @@ package edu.uadeapps.feriapp.ui.auth
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
@@ -18,9 +20,22 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import edu.uadeapps.feriapp.ui.components.AvisoCard
+import edu.uadeapps.feriapp.ui.components.TipoAviso
 
 @Composable
-fun LoginScreen(onVolverClick: () -> Unit) {
+fun LoginScreen(
+    onVolverClick: () -> Unit,
+    onLoginExitoso: () -> Unit,
+    onCrearCuentaClick: () -> Unit,
+    viewModel: AuthViewModel = viewModel(factory = AuthViewModel.Factory)
+) {
+    val uiState by viewModel.uiState.collectAsState()
+    LaunchedEffect(uiState.exito) {
+        if (uiState.exito) onLoginExitoso()
+    }
+
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
@@ -60,6 +75,7 @@ fun LoginScreen(onVolverClick: () -> Unit) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp)
         ) {
             // Título principal
@@ -128,23 +144,33 @@ fun LoginScreen(onVolverClick: () -> Unit) {
 
             Spacer(modifier = Modifier.height(32.dp))
 
+            uiState.error?.let { mensaje ->
+                AvisoCard(titulo = "No pudimos iniciar sesión", mensaje = mensaje, tipo = TipoAviso.ERROR)
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
             // Botón Iniciar sesión
             Button(
-                onClick = { /* Lógica de login hacia el backend */ },
+                onClick = { viewModel.iniciarSesion(email, password) },
+                enabled = !uiState.cargando,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = primaryBlue)
             ) {
-                Text("Iniciar sesión", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                if (uiState.cargando) {
+                    CircularProgressIndicator(color = Color.White, strokeWidth = 2.dp, modifier = Modifier.size(22.dp))
+                } else {
+                    Text("Iniciar sesión", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             // Botón Crear cuenta
             OutlinedButton(
-                onClick = { /* Navegación a registro */ },
+                onClick = onCrearCuentaClick,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),

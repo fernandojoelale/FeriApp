@@ -62,6 +62,7 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.7.7") //navegacion entre activities
     implementation("com.squareup.retrofit2:retrofit:2.9.0") //retrofit
     implementation("com.squareup.retrofit2:converter-gson:2.9.0") // convertidor de JSON a Kotlin
+    implementation("androidx.datastore:datastore-preferences:1.1.7") // sesion (token, rol) en el dispositivo
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

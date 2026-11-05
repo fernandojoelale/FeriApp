@@ -1,52 +1,54 @@
 package com.feriapp.backend.service
 
-import com.feriapp.backend.dto.ReservaRequest
 import com.feriapp.backend.exception.PuestoYaReservadoException
 import com.feriapp.backend.exception.RecursoNoEncontradoException
 import com.feriapp.backend.model.EstadoPuesto
 import com.feriapp.backend.model.EstadoReserva
 import com.feriapp.backend.model.Reserva
-import com.feriapp.backend.repository.FeriaRepository
+import com.feriapp.backend.model.Usuario
 import com.feriapp.backend.repository.PuestoRepository
 import com.feriapp.backend.repository.ReservaRepository
-import com.feriapp.backend.repository.UsuarioRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
 class ReservaService(
     private val reservaRepository: ReservaRepository,
-    private val puestoRepository: PuestoRepository,
-    private val usuarioRepository: UsuarioRepository,
-    private val feriaRepository: FeriaRepository
+    private val puestoRepository: PuestoRepository
 ) {
-    @Transactional // garantiza que no se reserve dos veces
-    fun reservarPuesto(request: ReservaRequest): Reserva {
-        val puesto = puestoRepository.findById(request.puestoId)
+    /**
+     * Reserva un puesto para el feriante autenticado. Si dos personas reservan a la vez,
+     * la restricción UNIQUE de Reserva.puesto_id hace fallar a la segunda (RNF05).
+     */
+    @Transactional
+    fun reservarPuesto(feriante: Usuario, puestoId: Long): Reserva {
+        val puesto = puestoRepository.findById(puestoId)
             .orElseThrow { RecursoNoEncontradoException("Puesto no encontrado") }
 
-        val feriante = usuarioRepository.findById(request.ferianteId)
-            .orElseThrow { RecursoNoEncontradoException("Feriante no encontrado") }
-
-        // Validar que esté libre
         if (puesto.estado != EstadoPuesto.DISPONIBLE) {
             throw PuestoYaReservadoException()
         }
 
-        // Marcar puesto como reservado
-        val puestoActualizado = puesto.copy(estado = EstadoPuesto.RESERVADO)
-        puestoRepository.save(puestoActualizado)
+        val puestoReservado = puestoRepository.save(puesto.copy(estado = EstadoPuesto.RESERVADO))
 
-        // Crear reserva
-        val nuevaReserva = Reserva(
-            puesto = puestoActualizado,
-            feria = puestoActualizado.feria,
-            feriante = feriante,
-            estado = EstadoReserva.CONFIRMADA
+        return reservaRepository.save(
+            Reserva(
+                puesto = puestoReservado,
+                feria = puestoReservado.feria,
+                feriante = feriante,
+                estado = EstadoReserva.CONFIRMADA
+            )
         )
+    }
 
+    fun obtenerMisReservas(feriante: Usuario): List<Reserva> =
+        reservaRepository.findByFerianteIdOrderByFechaReservaDesc(feriante.id)
 
-
-        return reservaRepository.save(nuevaReserva)
+    fun obtenerReserva(feriante: Usuario, reservaId: Long): Reserva {
+        val reserva = reservaRepository.findById(reservaId)
+            .orElseThrow { RecursoNoEncontradoException("Reserva no encontrada") }
+        // Una reserva ajena se trata como inexistente.
+        if (reserva.feriante.id != feriante.id) throw RecursoNoEncontradoException("Reserva no encontrada")
+        return reserva
     }
 }

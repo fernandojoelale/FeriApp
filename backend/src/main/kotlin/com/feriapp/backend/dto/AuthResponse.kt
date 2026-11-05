@@ -1,5 +1,9 @@
 package com.feriapp.backend.dto
 
-class AuthResponse (
-    val token: String, val rol: String
+data class AuthResponse(
+    val token: String,
+    val rol: String,
+    val nombre: String,
+    val email: String,
+    val usuarioId: Long
 )

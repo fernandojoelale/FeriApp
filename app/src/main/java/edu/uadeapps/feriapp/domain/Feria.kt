@@ -7,5 +7,11 @@ data class Feria(
     val zona: String,
     val rubro: String,
     val precioPuesto: Double,
-    val puestosLibres: Int
+    val puestosLibres: Int,
+    val horaInicio: String = "",
+    val horaFin: String = "",
+    val direccion: String = "",
+    val latitud: Double = 0.0,
+    val longitud: Double = 0.0,
+    val organizadorNombre: String = ""
 )

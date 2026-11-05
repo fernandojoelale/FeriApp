@@ -2,6 +2,7 @@ package edu.uadeapps.feriapp.ui.ferias
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -40,7 +41,8 @@ data class FeriaItem(
 @Composable
 fun FeriasScreen(
     viewModel: FeriasViewModel = viewModel(factory = FeriasViewModel.Factory),
-    onLoginClick: () -> Unit
+    onLoginClick: () -> Unit,
+    onFeriaClick: (Long) -> Unit = {}
 ) {
 
     val uiState by viewModel.uiState.collectAsState()
@@ -242,7 +244,7 @@ fun FeriasScreen(
                         }
                     } else {
                         items(feriasFiltradas) { feria ->
-                            FeriaCard(feria)
+                            FeriaCard(feria, onClick = { onFeriaClick(feria.id) })
                         }
                     }
 
@@ -254,9 +256,9 @@ fun FeriasScreen(
 }
 
 @Composable
-fun FeriaCard(feria: FeriaItem) {
+fun FeriaCard(feria: FeriaItem, onClick: () -> Unit = {}) {
     Card(
-        modifier = Modifier.fillMaxWidth().border(1.dp, Color(0xFFECEFF3), RoundedCornerShape(20.dp)),
+        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).clickable(onClick = onClick).border(1.dp, Color(0xFFECEFF3), RoundedCornerShape(20.dp)),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         shape = RoundedCornerShape(20.dp)
     ) {

@@ -33,8 +33,11 @@ open class SecurityConfig(
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { auth ->
                 auth.requestMatchers("/api/auth/**", "/error").permitAll()
-                // Consultar ferias no requiere sesion; reservar y publicar si.
-                auth.requestMatchers(HttpMethod.GET, "/api/ferias/**").permitAll()
+                // Consultar ferias no requiere sesion; reservar y publicar si (RNF03).
+                auth.requestMatchers(HttpMethod.GET, "/api/ferias/mias").hasRole("ORGANIZADOR")
+                auth.requestMatchers(HttpMethod.GET, "/api/ferias", "/api/ferias/**").permitAll()
+                auth.requestMatchers(HttpMethod.POST, "/api/ferias").hasRole("ORGANIZADOR")
+                auth.requestMatchers("/api/reservas/**").hasRole("FERIANTE")
                 auth.anyRequest().authenticated()
             }
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
