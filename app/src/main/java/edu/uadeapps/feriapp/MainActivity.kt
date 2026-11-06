@@ -23,6 +23,7 @@ import edu.uadeapps.feriapp.ui.auth.RegistroScreen
 import edu.uadeapps.feriapp.ui.ferias.FeriaDetalleScreen
 import edu.uadeapps.feriapp.ui.ferias.PuestosScreen
 import edu.uadeapps.feriapp.ui.reservas.ReservaConfirmadaScreen
+import edu.uadeapps.feriapp.ui.organizador.PublicarFeriaScreen
 import edu.uadeapps.feriapp.ui.sesion.SesionViewModel
 import edu.uadeapps.feriapp.ui.theme.FeriAppTheme
 
@@ -55,6 +56,7 @@ fun AppNavigation() {
                 onRegistroClick = { navController.navigate("registro") },
                 onFeriaClick = { id -> navController.navigate("feria/$id") },
                 onReservaClick = { id -> navController.navigate("reserva/$id") },
+                onPublicarFeriaClick = { navController.navigate("publicar") },
                 onCerrarSesion = { sesionViewModel.cerrarSesion() }
             )
         }
@@ -64,6 +66,13 @@ fun AppNavigation() {
                 onVolverClick = { navController.popBackStack() },
                 onLoginExitoso = { navController.popBackStack() },
                 onCrearCuentaClick = { navController.navigate("registro") }
+            )
+        }
+
+        composable("publicar") {
+            PublicarFeriaScreen(
+                onVolverClick = { navController.popBackStack() },
+                onPublicada = { navController.popBackStack() }
             )
         }
 

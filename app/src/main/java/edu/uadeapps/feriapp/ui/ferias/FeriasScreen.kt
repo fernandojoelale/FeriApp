@@ -13,10 +13,13 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Storefront
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import edu.uadeapps.feriapp.ui.components.AvisoCard
+import edu.uadeapps.feriapp.ui.components.TipoAviso
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
@@ -37,6 +40,8 @@ data class FeriaItem(
     val puestosLibres: Int
 )
 
+enum class OrdenFerias { NINGUNO, FECHA, PRECIO }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeriasScreen(
@@ -46,10 +51,17 @@ fun FeriasScreen(
 ) {
 
     val uiState by viewModel.uiState.collectAsState()
+    val refrescando by viewModel.refrescando.collectAsState()
+
+    // Cada vez que se vuelve a esta pantalla (de un detalle, de otra pestaña, de publicar una feria)
+    // se actualiza la lista en silencio, así aparecen las ferias nuevas sin reiniciar la app.
+    LaunchedEffect(Unit) { viewModel.refrescar() }
 
     var searchQuery by remember { mutableStateOf("") }
     var rubroSeleccionado by remember { mutableStateOf("Todos los rubros") }
     var menuExpanded by remember { mutableStateOf(false) }
+    var orden by remember { mutableStateOf(OrdenFerias.NINGUNO) }
+    var soloConLugar by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -135,14 +147,36 @@ fun FeriasScreen(
                             feria.rubro.equals(rubroSeleccionado, ignoreCase = true)
 
                     coincideBusqueda && coincideRubro
+                }.let { lista ->
+                    val conLugar = if (soloConLugar) lista.filter { it.puestosLibres > 0 } else lista
+                    when (orden) {
+                        OrdenFerias.FECHA -> conLugar.sortedBy { it.fecha } // AAAA-MM-DD ordena bien como texto
+                        OrdenFerias.PRECIO -> conLugar.sortedBy { it.precioNumerico }
+                        OrdenFerias.NINGUNO -> conLugar
+                    }
                 }
 
+                PullToRefreshBox(
+                    isRefreshing = refrescando,
+                    onRefresh = { viewModel.refrescar() },
+                    modifier = Modifier.fillMaxSize()
+                ) {
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(horizontal = 24.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+                    if (state.desdeCache) {
+                        item {
+                            Spacer(modifier = Modifier.height(16.dp))
+                            AvisoCard(
+                                titulo = "Sin conexión",
+                                mensaje = "Mostramos la última lista guardada: puede estar desactualizada. Para reservar necesitás internet.",
+                                tipo = TipoAviso.ADVERTENCIA
+                            )
+                        }
+                    }
                     item {
                         Spacer(modifier = Modifier.height(16.dp))
                         
@@ -220,6 +254,27 @@ fun FeriasScreen(
                             }
                         }
 
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // ORDEN Y DISPONIBILIDAD (RF02)
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            FilterChip(
+                                selected = orden == OrdenFerias.FECHA,
+                                onClick = { orden = if (orden == OrdenFerias.FECHA) OrdenFerias.NINGUNO else OrdenFerias.FECHA },
+                                label = { Text("Próximas") }
+                            )
+                            FilterChip(
+                                selected = orden == OrdenFerias.PRECIO,
+                                onClick = { orden = if (orden == OrdenFerias.PRECIO) OrdenFerias.NINGUNO else OrdenFerias.PRECIO },
+                                label = { Text("Más baratas") }
+                            )
+                            FilterChip(
+                                selected = soloConLugar,
+                                onClick = { soloConLugar = !soloConLugar },
+                                label = { Text("Con lugar") }
+                            )
+                        }
+
                         Spacer(modifier = Modifier.height(20.dp))
                         Text(
                             text = "${feriasFiltradas.size} ${if (feriasFiltradas.size == 1) "feria encontrada" else "ferias encontradas"}",
@@ -249,6 +304,7 @@ fun FeriasScreen(
                     }
 
                     item { Spacer(modifier = Modifier.height(24.dp)) }
+                }
                 }
             }
         }

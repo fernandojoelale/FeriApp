@@ -10,7 +10,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import edu.uadeapps.feriapp.domain.model.Rol
 import edu.uadeapps.feriapp.domain.model.Session
+import edu.uadeapps.feriapp.ui.organizador.MisFeriasScreen
 import edu.uadeapps.feriapp.ui.ferias.FeriasScreen
 import edu.uadeapps.feriapp.ui.perfil.PerfilScreen
 import edu.uadeapps.feriapp.ui.reservas.MisReservasScreen
@@ -23,6 +25,7 @@ fun MainScreen(
     onRegistroClick: () -> Unit,
     onFeriaClick: (Long) -> Unit,
     onReservaClick: (Long) -> Unit,
+    onPublicarFeriaClick: () -> Unit,
     onCerrarSesion: () -> Unit
 ) {
     var seccionActual by rememberSaveable(seccionInicial) { mutableStateOf(seccionInicial) }
@@ -48,11 +51,17 @@ fun MainScreen(
                     },
                     onFeriaClick = onFeriaClick
                 )
-                PantallasFooter.RESERVAS -> MisReservasScreen(
-                    sesion = sesion,
-                    onLoginClick = onLoginClick,
-                    onReservaClick = onReservaClick
-                )
+                PantallasFooter.RESERVAS ->
+                    if (sesion?.rol == Rol.ORGANIZADOR) {
+                        // Las cuentas de organizador no reservan: ven y publican sus ferias.
+                        MisFeriasScreen(onPublicarClick = onPublicarFeriaClick, onFeriaClick = onFeriaClick)
+                    } else {
+                        MisReservasScreen(
+                            sesion = sesion,
+                            onLoginClick = onLoginClick,
+                            onReservaClick = onReservaClick
+                        )
+                    }
                 PantallasFooter.PERFIL -> PerfilScreen(
                     sesion = sesion,
                     onLoginClick = onLoginClick,

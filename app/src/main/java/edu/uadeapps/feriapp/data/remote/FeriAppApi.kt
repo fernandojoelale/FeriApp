@@ -1,5 +1,6 @@
 package edu.uadeapps.feriapp.data.remote
 
+import edu.uadeapps.feriapp.data.remote.dto.CrearFeriaDto
 import edu.uadeapps.feriapp.data.remote.dto.FeriaDetalleDto
 import edu.uadeapps.feriapp.data.remote.dto.ReservaDto
 import edu.uadeapps.feriapp.data.remote.dto.ReservaRequestDto
@@ -29,8 +30,14 @@ interface FeriAppApi {
     @GET("api/ferias")
     suspend fun getFerias(): List<FeriaDto>
 
+    @GET("api/ferias/mias")
+    suspend fun getMisFerias(): List<FeriaDto>
+
     @GET("api/ferias/{id}")
     suspend fun getFeriaDetalle(@Path("id") id: Long): FeriaDetalleDto
+
+    @POST("api/ferias")
+    suspend fun crearFeria(@Body body: CrearFeriaDto): FeriaDto
 
     @POST("api/reservas")
     suspend fun reservar(@Body body: ReservaRequestDto): ReservaDto

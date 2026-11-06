@@ -25,35 +25,59 @@ class FeriasViewModel(
         cargarFerias()
     }
 
+    private val _refrescando = MutableStateFlow(false)
+    val refrescando: StateFlow<Boolean> = _refrescando.asStateFlow()
+
     fun cargarFerias() {
         viewModelScope.launch {
             _uiState.value = FeriasUiState.Cargando
-            repository.obtenerFerias()
-                .onSuccess { feriasDominio ->
-                    if (feriasDominio.isEmpty()) {
-                        _uiState.value = FeriasUiState.Vacio
-                    } else {
-                        val feriasMapeadas = feriasDominio.map { feria ->
-                            FeriaItem(
-                                id = feria.id,
-                                nombre = feria.nombre,
-                                fecha = feria.fecha,
-                                barrio = feria.zona,
-                                rubro = feria.rubro,
-                                distancia = "A calcular",
-                                precio = "$ ${feria.precioPuesto.toInt()}",
-                                precioNumerico = feria.precioPuesto,
-                                puestosLibres = feria.puestosLibres
-                            )
-                        }
-                        _uiState.value = FeriasUiState.Contenido(feriasMapeadas)
+            consultarFerias()
+        }
+    }
+
+    /**
+     * Actualiza la lista sin tapar la pantalla con el spinner (al volver a la pantalla o al
+     * deslizar hacia abajo). Si falla y ya había ferias a la vista, se conservan las que había.
+     */
+    fun refrescar() {
+        if (_refrescando.value || _uiState.value is FeriasUiState.Cargando) return
+        viewModelScope.launch {
+            _refrescando.value = true
+            consultarFerias()
+            _refrescando.value = false
+        }
+    }
+
+    private suspend fun consultarFerias() {
+        repository.obtenerFeriasConCache()
+            .onSuccess { cargadas ->
+                val feriasDominio = cargadas.ferias
+                if (feriasDominio.isEmpty()) {
+                    _uiState.value = FeriasUiState.Vacio
+                } else {
+                    val feriasMapeadas = feriasDominio.map { feria ->
+                        FeriaItem(
+                            id = feria.id,
+                            nombre = feria.nombre,
+                            fecha = feria.fecha,
+                            barrio = feria.zona,
+                            rubro = feria.rubro,
+                            distancia = "A calcular",
+                            precio = "$ ${feria.precioPuesto.toInt()}",
+                            precioNumerico = feria.precioPuesto,
+                            puestosLibres = feria.puestosLibres
+                        )
                     }
+                    _uiState.value = FeriasUiState.Contenido(feriasMapeadas, cargadas.desdeCache)
                 }
-                .onFailure { e ->
-                    Log.e("FeriasViewModel", "Error al obtener ferias", e)
+            }
+            .onFailure { e ->
+                Log.e("FeriasViewModel", "Error al obtener ferias", e)
+                // Si ya se estaban mostrando ferias, no se pisan con un error.
+                if (_uiState.value !is FeriasUiState.Contenido) {
                     _uiState.value = FeriasUiState.Error("Error: ${e.localizedMessage ?: e.message}")
                 }
-        }
+            }
     }
 
     companion object {
