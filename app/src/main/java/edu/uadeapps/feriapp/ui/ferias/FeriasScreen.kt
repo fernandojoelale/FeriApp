@@ -1,5 +1,8 @@
 package edu.uadeapps.feriapp.ui.ferias
 
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -18,6 +21,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
+import edu.uadeapps.feriapp.domain.distanciaKm
+import edu.uadeapps.feriapp.domain.formatearDistancia
+import edu.uadeapps.feriapp.domain.tieneUbicacion
+import kotlinx.coroutines.launch
 import edu.uadeapps.feriapp.ui.components.AvisoCard
 import edu.uadeapps.feriapp.ui.components.TipoAviso
 import androidx.compose.ui.graphics.Color
@@ -37,10 +45,12 @@ data class FeriaItem(
     val distancia: String,
     val precio: String,
     val precioNumerico: Double = 0.0,
-    val puestosLibres: Int
+    val puestosLibres: Int,
+    val latitud: Double = 0.0,
+    val longitud: Double = 0.0
 )
 
-enum class OrdenFerias { NINGUNO, FECHA, PRECIO }
+enum class OrdenFerias { NINGUNO, FECHA, PRECIO, CERCA }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,6 +72,36 @@ fun FeriasScreen(
     var menuExpanded by remember { mutableStateOf(false) }
     var orden by remember { mutableStateOf(OrdenFerias.NINGUNO) }
     var soloConLugar by remember { mutableStateOf(false) }
+
+    // "Cerca de mí": la ubicación se usa solo acá, en el celular, para calcular distancias.
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var ubicacion by remember { mutableStateOf<Pair<Double, Double>?>(null) }
+    var buscandoUbicacion by remember { mutableStateOf(false) }
+    var avisoUbicacion by remember { mutableStateOf<String?>(null) }
+
+    fun activarCerca() {
+        scope.launch {
+            buscandoUbicacion = true
+            avisoUbicacion = null
+            val u = obtenerUbicacion(context)
+            buscandoUbicacion = false
+            if (u != null) {
+                ubicacion = u
+                orden = OrdenFerias.CERCA
+            } else {
+                avisoUbicacion = "No pudimos obtener tu ubicación. Activá el GPS e intentá de nuevo."
+            }
+        }
+    }
+
+    val pedirPermiso = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { resultado ->
+        if (resultado.values.any { it }) {
+            activarCerca()
+        } else {
+            avisoUbicacion = "Sin permiso de ubicación no podemos ordenar por cercanía. Podés seguir usando los demás filtros."
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -148,8 +188,19 @@ fun FeriasScreen(
 
                     coincideBusqueda && coincideRubro
                 }.let { lista ->
-                    val conLugar = if (soloConLugar) lista.filter { it.puestosLibres > 0 } else lista
+                    val conLugar = (if (soloConLugar) lista.filter { it.puestosLibres > 0 } else lista).map { f ->
+                        val u = ubicacion
+                        if (u != null && tieneUbicacion(f.latitud, f.longitud)) {
+                            f.copy(distancia = formatearDistancia(distanciaKm(u.first, u.second, f.latitud, f.longitud)))
+                        } else f
+                    }
                     when (orden) {
+                        OrdenFerias.CERCA -> conLugar.sortedBy { f ->
+                            val u = ubicacion
+                            if (u != null && tieneUbicacion(f.latitud, f.longitud)) {
+                                distanciaKm(u.first, u.second, f.latitud, f.longitud)
+                            } else Double.MAX_VALUE
+                        }
                         OrdenFerias.FECHA -> conLugar.sortedBy { it.fecha } // AAAA-MM-DD ordena bien como texto
                         OrdenFerias.PRECIO -> conLugar.sortedBy { it.precioNumerico }
                         OrdenFerias.NINGUNO -> conLugar
@@ -259,6 +310,23 @@ fun FeriasScreen(
                         // ORDEN Y DISPONIBILIDAD (RF02)
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             FilterChip(
+                                selected = orden == OrdenFerias.CERCA,
+                                onClick = {
+                                    when {
+                                        orden == OrdenFerias.CERCA -> orden = OrdenFerias.NINGUNO
+                                        buscandoUbicacion -> Unit
+                                        tienePermisoUbicacion(context) -> activarCerca()
+                                        else -> pedirPermiso.launch(
+                                            arrayOf(
+                                                Manifest.permission.ACCESS_COARSE_LOCATION,
+                                                Manifest.permission.ACCESS_FINE_LOCATION
+                                            )
+                                        )
+                                    }
+                                },
+                                label = { Text(if (buscandoUbicacion) "Buscando…" else "Cerca de mí") }
+                            )
+                            FilterChip(
                                 selected = orden == OrdenFerias.FECHA,
                                 onClick = { orden = if (orden == OrdenFerias.FECHA) OrdenFerias.NINGUNO else OrdenFerias.FECHA },
                                 label = { Text("Próximas") }
@@ -273,6 +341,11 @@ fun FeriasScreen(
                                 onClick = { soloConLugar = !soloConLugar },
                                 label = { Text("Con lugar") }
                             )
+                        }
+
+                        avisoUbicacion?.let {
+                            Spacer(modifier = Modifier.height(12.dp))
+                            AvisoCard(titulo = "Ubicación", mensaje = it, tipo = TipoAviso.ADVERTENCIA)
                         }
 
                         Spacer(modifier = Modifier.height(20.dp))
@@ -331,7 +404,7 @@ fun FeriaCard(feria: FeriaItem, onClick: () -> Unit = {}) {
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(text = feria.fecha, fontSize = 12.sp, color = Color(0xFF6B7280))
                 Text(
-                    text = if (feria.rubro.isNotBlank()) "${feria.barrio} · ${feria.rubro}" else "${feria.barrio} · ${feria.distancia}",
+                    text = listOf(feria.barrio, feria.rubro, feria.distancia).filter { it.isNotBlank() }.joinToString(" · "),
                     fontSize = 12.sp,
                     color = Color(0xFF6B7280)
                 )

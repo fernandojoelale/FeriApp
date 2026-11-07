@@ -62,10 +62,12 @@ class FeriasViewModel(
                             fecha = feria.fecha,
                             barrio = feria.zona,
                             rubro = feria.rubro,
-                            distancia = "A calcular",
+                            distancia = "",
                             precio = "$ ${feria.precioPuesto.toInt()}",
                             precioNumerico = feria.precioPuesto,
-                            puestosLibres = feria.puestosLibres
+                            puestosLibres = feria.puestosLibres,
+                            latitud = feria.latitud,
+                            longitud = feria.longitud
                         )
                     }
                     _uiState.value = FeriasUiState.Contenido(feriasMapeadas, cargadas.desdeCache)
