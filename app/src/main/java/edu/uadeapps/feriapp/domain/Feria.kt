@@ -13,5 +13,8 @@ data class Feria(
     val direccion: String = "",
     val latitud: Double = 0.0,
     val longitud: Double = 0.0,
-    val organizadorNombre: String = ""
+    val organizadorNombre: String = "",
+    /** true si viene de la copia guardada en el celular (Room) y no del servidor. */
+    val desdeCache: Boolean = false,
+    val actualizadoEn: Long = 0L
 )

@@ -28,6 +28,7 @@ import edu.uadeapps.feriapp.domain.tieneUbicacion
 import kotlinx.coroutines.launch
 import edu.uadeapps.feriapp.ui.components.AvisoCard
 import edu.uadeapps.feriapp.ui.components.TipoAviso
+import edu.uadeapps.feriapp.ui.components.formatearActualizacion
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
@@ -218,12 +219,13 @@ fun FeriasScreen(
                         .padding(horizontal = 24.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    if (state.desdeCache) {
+                    if (state.desdeCache && !refrescando) {
                         item {
                             Spacer(modifier = Modifier.height(16.dp))
                             AvisoCard(
-                                titulo = "Sin conexión",
-                                mensaje = "Mostramos la última lista guardada: puede estar desactualizada. Para reservar necesitás internet.",
+                                titulo = "Sin conexión · datos guardados",
+                                mensaje = "Última actualización: ${formatearActualizacion(state.actualizadoEn)}. " +
+                                    "Podés seguir consultando las ferias descargadas; para reservar necesitás internet.",
                                 tipo = TipoAviso.ADVERTENCIA
                             )
                         }

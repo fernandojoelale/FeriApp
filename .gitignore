@@ -13,3 +13,7 @@
 .externalNativeBuild
 .cxx
 local.properties
+#FIREBASE
+google-services.json
+**/google-services.json
+*firebase*adminsdk*.json

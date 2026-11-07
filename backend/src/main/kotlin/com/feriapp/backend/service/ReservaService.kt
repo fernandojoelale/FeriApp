@@ -14,7 +14,8 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class ReservaService(
     private val reservaRepository: ReservaRepository,
-    private val puestoRepository: PuestoRepository
+    private val puestoRepository: PuestoRepository,
+    private val notificaciones: NotificacionPush
 ) {
     /**
      * Reserva un puesto para el feriante autenticado. Si dos personas reservan a la vez,
@@ -31,7 +32,7 @@ class ReservaService(
 
         val puestoReservado = puestoRepository.save(puesto.copy(estado = EstadoPuesto.RESERVADO))
 
-        return reservaRepository.save(
+        val reserva = reservaRepository.save(
             Reserva(
                 puesto = puestoReservado,
                 feria = puestoReservado.feria,
@@ -39,6 +40,11 @@ class ReservaService(
                 estado = EstadoReserva.CONFIRMADA
             )
         )
+
+        // RF04: el aviso al organizador sale recién cuando la reserva quedó confirmada en la base
+        // y nunca puede hacer fallar la reserva.
+        notificaciones.avisarReservaAlOrganizador(reserva)
+        return reserva
     }
 
     fun obtenerMisReservas(feriante: Usuario): List<Reserva> =

@@ -21,7 +21,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import edu.uadeapps.feriapp.ui.components.AvisoCard
 import edu.uadeapps.feriapp.ui.components.BotonPrimario
+import edu.uadeapps.feriapp.ui.components.TipoAviso
+import edu.uadeapps.feriapp.ui.components.formatearActualizacion
 import edu.uadeapps.feriapp.ui.components.BotonSecundario
 import edu.uadeapps.feriapp.ui.components.DatoConEtiqueta
 import edu.uadeapps.feriapp.ui.components.EncabezadoFeri
@@ -57,6 +60,14 @@ fun FeriaDetalleScreen(
                         .verticalScroll(rememberScrollState())
                         .padding(24.dp)
                 ) {
+                    if (e.detalle.desdeCache) {
+                        AvisoCard(
+                            titulo = "Sin conexión · datos guardados",
+                            mensaje = "Actualizado ${formatearActualizacion(e.detalle.actualizadoEn)}. La disponibilidad puede haber cambiado.",
+                            tipo = TipoAviso.ADVERTENCIA
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
                     Text(feria.nombre, color = FeriColors.Primario, fontSize = 24.sp, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(16.dp))
                     DatoConEtiqueta("Fecha", formatearFecha(feria.fecha))

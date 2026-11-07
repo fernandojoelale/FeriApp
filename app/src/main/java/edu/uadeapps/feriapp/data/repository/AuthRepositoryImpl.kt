@@ -1,6 +1,7 @@
 package edu.uadeapps.feriapp.data.repository
 
 import edu.uadeapps.feriapp.data.local.SessionManager
+import edu.uadeapps.feriapp.data.local.db.FeriAppDatabase
 import edu.uadeapps.feriapp.data.mapper.toSession
 import edu.uadeapps.feriapp.data.remote.AuthApi
 import edu.uadeapps.feriapp.data.remote.dto.AuthResponseDto
@@ -16,7 +17,8 @@ import kotlin.coroutines.cancellation.CancellationException
 
 class AuthRepositoryImpl(
     private val api: AuthApi,
-    private val sessionManager: SessionManager
+    private val sessionManager: SessionManager,
+    private val db: FeriAppDatabase? = null
 ) : AuthRepository {
 
     override val session: Flow<Session?> = sessionManager.session
@@ -35,7 +37,19 @@ class AuthRepositoryImpl(
             api.register(RegisterRequestDto(nombre, email, password, rol.name, rubro))
         }
 
-    override suspend fun cerrarSesion() = sessionManager.cerrar()
+    override suspend fun cerrarSesion() {
+        sessionManager.cerrar()
+        borrarDatosPersonales()
+    }
+
+    /** Las reservas guardadas en el celular son de la cuenta anterior: no deben verse en otra. */
+    private suspend fun borrarDatosPersonales() {
+        try {
+            db?.reservaDao()?.borrarTodas()
+        } catch (e: Exception) {
+            // Nada que hacer: la copia local es opcional.
+        }
+    }
 
     private suspend fun autenticar(
         esLogin: Boolean,
@@ -43,6 +57,7 @@ class AuthRepositoryImpl(
     ): Result<Session> =
         try {
             val sesion = llamada().toSession()
+            borrarDatosPersonales()
             sessionManager.guardar(sesion)
             Result.success(sesion)
         } catch (e: CancellationException) {

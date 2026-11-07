@@ -17,5 +17,7 @@ data class Usuario(
     val email: String,
     @Enumerated(EnumType.STRING)
     val rol: RolUsuario,
-    val rubro: String? = null
+    val rubro: String? = null,
+    /** Token de Firebase Cloud Messaging del celular del usuario (para las notificaciones push). */
+    val fcmToken: String? = null
 )

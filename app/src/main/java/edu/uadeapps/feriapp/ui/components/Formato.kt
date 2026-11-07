@@ -54,3 +54,15 @@ fun esFechaPasada(fechaIso: String): Boolean =
     } catch (e: Exception) {
         false
     }
+
+/** 1762400000000 -> "hoy 09:12" o "05/11 09:12" (cuándo se descargaron por última vez los datos). */
+fun formatearActualizacion(milis: Long): String {
+    if (milis <= 0L) return ""
+    val fechaHora = java.time.LocalDateTime.ofInstant(
+        java.time.Instant.ofEpochMilli(milis),
+        java.time.ZoneId.systemDefault()
+    )
+    val hora = fechaHora.format(DateTimeFormatter.ofPattern("HH:mm"))
+    return if (fechaHora.toLocalDate() == LocalDate.now()) "hoy $hora"
+    else fechaHora.format(DateTimeFormatter.ofPattern("dd/MM")) + " $hora"
+}

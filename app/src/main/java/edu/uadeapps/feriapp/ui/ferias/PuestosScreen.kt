@@ -43,6 +43,7 @@ import edu.uadeapps.feriapp.ui.components.EncabezadoFeri
 import edu.uadeapps.feriapp.ui.components.EstadoCargando
 import edu.uadeapps.feriapp.ui.components.EstadoError
 import edu.uadeapps.feriapp.ui.components.TipoAviso
+import edu.uadeapps.feriapp.ui.components.formatearActualizacion
 import edu.uadeapps.feriapp.ui.components.formatearPrecio
 import edu.uadeapps.feriapp.ui.theme.FeriColors
 
@@ -99,6 +100,17 @@ fun PuestosScreen(
                         .padding(horizontal = 16.dp, vertical = 12.dp)
                         .navigationBarsPadding()
                 ) {
+                    if (estado.sinConexion) {
+                        AvisoCard(
+                            titulo = "Sin conexión · plano guardado",
+                            mensaje = "Este plano es de ${formatearActualizacion(detalle.actualizadoEn)} y puede estar desactualizado. " +
+                                "Reservá cuando tengas internet.",
+                            tipo = TipoAviso.ADVERTENCIA
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        BotonSecundario(texto = "Reintentar conexión", onClick = { viewModel.cargar() })
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
                     estado.aviso?.let { aviso ->
                         AvisoCard(aviso)
                         if (aviso.tipo == TipoAviso.REQUIERE_LOGIN) {
@@ -119,7 +131,7 @@ fun PuestosScreen(
                     BotonPrimario(
                         texto = "Confirmar reserva",
                         onClick = { viewModel.reservar() },
-                        enabled = elegido != null,
+                        enabled = elegido != null && !estado.sinConexion,
                         cargando = estado.reservando
                     )
                 }

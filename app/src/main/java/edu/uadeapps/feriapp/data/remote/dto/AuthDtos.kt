@@ -17,3 +17,6 @@ data class AuthResponseDto(
     val email: String = "",
     val usuarioId: Long = 0
 )
+
+/** Cuerpo de PUT api/usuarios/me/fcm-token: identifica este celular para las notificaciones push. */
+data class TokenPushDto(val token: String)

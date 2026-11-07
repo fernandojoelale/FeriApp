@@ -14,5 +14,7 @@ data class Reserva(
     val zona: String,
     val latitud: Double,
     val longitud: Double,
-    val precioPuesto: Double
+    val precioPuesto: Double,
+    val desdeCache: Boolean = false,
+    val actualizadoEn: Long = 0L
 )

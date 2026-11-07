@@ -4,7 +4,11 @@ import edu.uadeapps.feriapp.data.remote.dto.CrearFeriaDto
 import edu.uadeapps.feriapp.data.remote.dto.FeriaDetalleDto
 import edu.uadeapps.feriapp.data.remote.dto.ReservaDto
 import edu.uadeapps.feriapp.data.remote.dto.ReservaRequestDto
+import edu.uadeapps.feriapp.data.remote.dto.TokenPushDto
+import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
+import retrofit2.http.PUT
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
@@ -47,4 +51,10 @@ interface FeriAppApi {
 
     @GET("api/reservas/{id}")
     suspend fun getReserva(@Path("id") id: Long): ReservaDto
+
+    @PUT("api/usuarios/me/fcm-token")
+    suspend fun registrarTokenPush(@Body body: TokenPushDto): Response<Unit>
+
+    @DELETE("api/usuarios/me/fcm-token")
+    suspend fun borrarTokenPush(): Response<Unit>
 }

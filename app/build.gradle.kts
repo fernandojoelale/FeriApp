@@ -3,6 +3,13 @@ import java.util.Properties
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    id("com.google.devtools.ksp") // procesa las anotaciones de Room
+}
+
+// Firebase (notificaciones push, RF04): el plugin solo se aplica si existe app/google-services.json,
+// así el proyecto compila igual mientras ese archivo no esté.
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
 }
 
 // URL del backend. Por defecto: emulador (10.0.2.2 = tu PC). Para un celular real o
@@ -63,6 +70,11 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:2.9.0") //retrofit
     implementation("com.squareup.retrofit2:converter-gson:2.9.0") // convertidor de JSON a Kotlin
     implementation("androidx.datastore:datastore-preferences:1.1.7") // sesion (token, rol) en el dispositivo
+    implementation("androidx.room:room-runtime:2.8.5") // base local (offline first)
+    implementation("androidx.room:room-ktx:2.8.5")
+    ksp("androidx.room:room-compiler:2.8.5")
+    implementation(platform("com.google.firebase:firebase-bom:34.0.0")) // notificaciones push
+    implementation("com.google.firebase:firebase-messaging")
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

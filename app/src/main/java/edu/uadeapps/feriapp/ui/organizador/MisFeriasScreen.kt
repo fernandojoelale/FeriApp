@@ -25,7 +25,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import edu.uadeapps.feriapp.domain.Feria
+import edu.uadeapps.feriapp.ui.components.AvisoCard
 import edu.uadeapps.feriapp.ui.components.BotonPrimario
+import edu.uadeapps.feriapp.ui.components.TipoAviso
+import edu.uadeapps.feriapp.ui.components.formatearActualizacion
 import edu.uadeapps.feriapp.ui.components.EncabezadoFeri
 import edu.uadeapps.feriapp.ui.components.EstadoCargando
 import edu.uadeapps.feriapp.ui.components.EstadoError
@@ -63,6 +66,16 @@ fun MisFeriasScreen(
                         contentPadding = PaddingValues(16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
+                        if (e.ferias.any { it.desdeCache }) {
+                            item {
+                                AvisoCard(
+                                    titulo = "Sin conexión · solo lectura",
+                                    mensaje = "Estas ferias se guardaron ${formatearActualizacion(e.ferias.maxOf { it.actualizadoEn })}. " +
+                                        "Para publicar una nueva necesitás internet.",
+                                    tipo = TipoAviso.ADVERTENCIA
+                                )
+                            }
+                        }
                         item { BotonPrimario(texto = "Publicar nueva feria", onClick = onPublicarClick) }
                         items(e.ferias, key = { it.id }) { TarjetaMiFeria(it) { onFeriaClick(it.id) } }
                     }

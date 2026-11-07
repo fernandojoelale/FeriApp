@@ -26,7 +26,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import edu.uadeapps.feriapp.domain.model.Reserva
 import edu.uadeapps.feriapp.domain.model.Rol
 import edu.uadeapps.feriapp.domain.model.Session
+import edu.uadeapps.feriapp.ui.components.AvisoCard
 import edu.uadeapps.feriapp.ui.components.BotonPrimario
+import edu.uadeapps.feriapp.ui.components.TipoAviso
+import edu.uadeapps.feriapp.ui.components.formatearActualizacion
 import edu.uadeapps.feriapp.ui.components.EncabezadoFeri
 import edu.uadeapps.feriapp.ui.components.EstadoCargando
 import edu.uadeapps.feriapp.ui.components.EstadoError
@@ -82,6 +85,15 @@ fun MisReservasScreen(
                             contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
+                            if (e.reservas.any { it.desdeCache }) {
+                                item {
+                                    AvisoCard(
+                                        titulo = "Sin conexión · datos guardados",
+                                        mensaje = "Mostramos tus reservas de ${formatearActualizacion(e.reservas.maxOf { it.actualizadoEn })}.",
+                                        tipo = TipoAviso.ADVERTENCIA
+                                    )
+                                }
+                            }
                             if (proximas.isNotEmpty()) {
                                 item { Text("Próximas", color = FeriColors.Primario, fontSize = 18.sp, fontWeight = FontWeight.Bold) }
                                 items(proximas, key = { it.id }) { TarjetaReserva(it, onReservaClick) }

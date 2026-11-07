@@ -1,10 +1,22 @@
 package edu.uadeapps.feriapp
 
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
+import edu.uadeapps.feriapp.domain.model.Rol
+import edu.uadeapps.feriapp.notificaciones.Notificaciones
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
@@ -28,23 +40,56 @@ import edu.uadeapps.feriapp.ui.sesion.SesionViewModel
 import edu.uadeapps.feriapp.ui.theme.FeriAppTheme
 
 class MainActivity : ComponentActivity() {
+
+    // Feria a la que hay que ir porque el usuario tocó una notificación de reserva (RF04).
+    private var feriaDeNotificacion by mutableStateOf<Long?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        feriaDeNotificacion = leerFeriaDe(intent)
         setContent {
             FeriAppTheme {
-                AppNavigation()
+                AppNavigation(
+                    feriaDeNotificacion = feriaDeNotificacion,
+                    onNotificacionAtendida = { feriaDeNotificacion = null }
+                )
             }
         }
     }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        feriaDeNotificacion = leerFeriaDe(intent)
+    }
+
+    private fun leerFeriaDe(intent: Intent?): Long? =
+        intent?.getLongExtra(Notificaciones.EXTRA_FERIA_ID, -1L)?.takeIf { it > 0 }
 }
 
 @Composable
-fun AppNavigation() {
+fun AppNavigation(
+    feriaDeNotificacion: Long? = null,
+    onNotificacionAtendida: () -> Unit = {}
+) {
     val navController = rememberNavController()
+    val context = LocalContext.current
     val sesionViewModel: SesionViewModel = viewModel(factory = SesionViewModel.Factory)
     val sesion by sesionViewModel.sesion.collectAsState()
     var seccionInicial by remember { mutableStateOf(PantallasFooter.FERIAS) }
+
+    // Android 13+: el organizador debe aceptar las notificaciones para recibir los avisos de reserva.
+    val pedirNotificaciones = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
+    var permisoYaPedido by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(sesion?.rol) {
+        if (sesion?.rol == Rol.ORGANIZADOR && !permisoYaPedido && Build.VERSION.SDK_INT >= 33 &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) {
+            permisoYaPedido = true
+            pedirNotificaciones.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
 
     NavHost(navController = navController, startDestination = "main_flow") {
 
@@ -126,6 +171,14 @@ fun AppNavigation() {
                     navController.popBackStack("main_flow", false)
                 }
             )
+        }
+    }
+
+    // Tocar la notificación de una reserva lleva directo al detalle de esa feria.
+    LaunchedEffect(feriaDeNotificacion) {
+        feriaDeNotificacion?.let { id ->
+            navController.navigate("feria/$id")
+            onNotificacionAtendida()
         }
     }
 }

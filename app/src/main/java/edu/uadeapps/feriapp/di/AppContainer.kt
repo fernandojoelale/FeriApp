@@ -1,7 +1,10 @@
 package edu.uadeapps.feriapp.di
 
 import android.content.Context
-import edu.uadeapps.feriapp.data.local.FeriasCache
+import edu.uadeapps.feriapp.data.local.db.FeriAppDatabase
+import edu.uadeapps.feriapp.data.net.ConectividadObserver
+import edu.uadeapps.feriapp.data.push.PushTokenManager
+import kotlinx.coroutines.flow.Flow
 import edu.uadeapps.feriapp.data.local.SessionManager
 import edu.uadeapps.feriapp.data.remote.FeriAppApi
 import edu.uadeapps.feriapp.data.remote.RetrofitClient
@@ -37,11 +40,14 @@ interface AppContainer {
     val obtenerReservaUseCase: ObtenerReservaUseCase
     val crearFeriaUseCase: CrearFeriaUseCase
     val obtenerMisFeriasUseCase: ObtenerMisFeriasUseCase
+    val conectado: Flow<Boolean>
+    val pushTokenManager: PushTokenManager
 }
 
 class AppDataContainer(context: Context) : AppContainer {
 
     private val sessionManager = SessionManager(context.applicationContext)
+    private val database = FeriAppDatabase.crear(context)
 
     private val retrofitClient = RetrofitClient(
         tokenProvider = { sessionManager.session.firstOrNull()?.token }
@@ -50,11 +56,11 @@ class AppDataContainer(context: Context) : AppContainer {
     private val api: FeriAppApi = retrofitClient.feriaApi
 
     private val authRepository: AuthRepository =
-        AuthRepositoryImpl(retrofitClient.authApi, sessionManager)
-    private val detalleFeriaRepository: DetalleFeriaRepository = DetalleFeriaRepositoryImpl(api)
-    private val reservaRepository: ReservaRepository = ReservaRepositoryImpl(api)
+        AuthRepositoryImpl(retrofitClient.authApi, sessionManager, database)
+    private val detalleFeriaRepository: DetalleFeriaRepository = DetalleFeriaRepositoryImpl(api, database)
+    private val reservaRepository: ReservaRepository = ReservaRepositoryImpl(api, database)
 
-    override val feriaRepository: FeriaRepository by lazy { FeriaRepository(api, FeriasCache(context.applicationContext)) }
+    override val feriaRepository: FeriaRepository by lazy { FeriaRepository(api, database) }
 
     override val iniciarSesionUseCase by lazy { IniciarSesionUseCase(authRepository) }
     override val registrarUsuarioUseCase by lazy { RegistrarUsuarioUseCase(authRepository) }
@@ -66,4 +72,7 @@ class AppDataContainer(context: Context) : AppContainer {
     override val obtenerReservaUseCase by lazy { ObtenerReservaUseCase(reservaRepository) }
     override val crearFeriaUseCase by lazy { CrearFeriaUseCase(detalleFeriaRepository, authRepository) }
     override val obtenerMisFeriasUseCase by lazy { ObtenerMisFeriasUseCase(detalleFeriaRepository) }
+
+    override val conectado: Flow<Boolean> by lazy { ConectividadObserver(context).conectado }
+    override val pushTokenManager by lazy { PushTokenManager(context.applicationContext, api, sessionManager) }
 }

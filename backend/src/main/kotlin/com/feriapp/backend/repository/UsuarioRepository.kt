@@ -6,4 +6,5 @@ import java.util.Optional
 
 interface UsuarioRepository : JpaRepository<Usuario, Long> {
     fun findByEmail(email: String): Usuario? // LOGIN
+    fun findByFcmToken(fcmToken: String): List<Usuario>
 }

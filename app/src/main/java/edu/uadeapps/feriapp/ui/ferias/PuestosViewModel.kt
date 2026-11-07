@@ -31,6 +31,10 @@ data class PuestosUiState(
 ) {
     val seleccionado: Puesto?
         get() = detalle?.puestos?.firstOrNull { it.id == seleccionadoId }
+
+    /** Mostrando el plano guardado en el celular: se puede mirar pero no reservar. */
+    val sinConexion: Boolean
+        get() = detalle?.desdeCache == true
 }
 
 class PuestosViewModel(
@@ -83,7 +87,7 @@ class PuestosViewModel(
 
     fun seleccionar(puesto: Puesto) {
         val estado = _uiState.value
-        if (!puesto.disponible || estado.reservando) return
+        if (!puesto.disponible || estado.reservando || estado.sinConexion) return
         _uiState.update {
             it.copy(
                 seleccionadoId = if (it.seleccionadoId == puesto.id) null else puesto.id,
@@ -94,7 +98,7 @@ class PuestosViewModel(
 
     fun reservar() {
         val puesto = _uiState.value.seleccionado ?: return
-        if (_uiState.value.reservando) return
+        if (_uiState.value.reservando || _uiState.value.sinConexion) return
         _uiState.update { it.copy(reservando = true, aviso = null) }
 
         viewModelScope.launch {
