@@ -70,7 +70,7 @@ fun ReservaConfirmadaScreen(
                     Text(
                         "El pago no se hace en la app: coordinalo con el organizador.",
                         color = FeriColors.TextoSecundario,
-                        fontSize = 12.sp
+                        fontSize = 14.sp
                     )
                 }
                 Column(

@@ -82,7 +82,7 @@ fun FeriaDetalleScreen(
                     Text(
                         "El pago del puesto se acuerda con el organizador. La app solo reserva el lugar.",
                         color = FeriColors.TextoSecundario,
-                        fontSize = 12.sp
+                        fontSize = 14.sp
                     )
                 }
                 Column(

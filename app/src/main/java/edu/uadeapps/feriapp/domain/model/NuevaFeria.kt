@@ -11,5 +11,11 @@ data class NuevaFeria(
     val longitud: Double,
     val rubro: String,
     val precioPuesto: Double,
-    val cantidadPuestos: Int
-)
+    /** Posición de cada puesto en el plano del predio, definida por el organizador. */
+    val puestos: List<PosicionPuesto>
+) {
+    val cantidadPuestos: Int get() = puestos.size
+}
+
+/** Columna (posX) y fila (posY) de un puesto dentro del plano, contadas desde 0. */
+data class PosicionPuesto(val posX: Int, val posY: Int)

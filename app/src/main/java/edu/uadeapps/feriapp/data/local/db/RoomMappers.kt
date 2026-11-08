@@ -11,14 +11,14 @@ import edu.uadeapps.feriapp.domain.model.Reserva
 fun FeriaDto.toEntity(coleccion: String, ahora: Long) = FeriaEntity(
     id = id, coleccion = coleccion, nombre = nombre, fecha = fecha, horaInicio = horaInicio,
     horaFin = horaFin, direccion = direccion, zona = zona, latitud = latitud, longitud = longitud,
-    rubro = rubro, precioPuesto = precioPuesto, puestosLibres = puestosLibres,
+    rubro = rubro, precioPuesto = precioPuesto, puestosLibres = puestosLibres, totalPuestos = totalPuestos,
     organizadorNombre = organizadorNombre, actualizadoEn = ahora
 )
 
 /** Una feria leída de Room siempre se marca como "datos guardados". */
 fun FeriaEntity.toDomain() = Feria(
     id = id, nombre = nombre, fecha = fecha, zona = zona, rubro = rubro, precioPuesto = precioPuesto,
-    puestosLibres = puestosLibres, horaInicio = horaInicio, horaFin = horaFin, direccion = direccion,
+    puestosLibres = puestosLibres, totalPuestos = totalPuestos, horaInicio = horaInicio, horaFin = horaFin, direccion = direccion,
     latitud = latitud, longitud = longitud, organizadorNombre = organizadorNombre,
     desdeCache = true, actualizadoEn = actualizadoEn
 )

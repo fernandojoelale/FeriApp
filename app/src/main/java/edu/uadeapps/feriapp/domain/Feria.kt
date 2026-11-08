@@ -8,6 +8,7 @@ data class Feria(
     val rubro: String,
     val precioPuesto: Double,
     val puestosLibres: Int,
+    val totalPuestos: Int = 0,
     val horaInicio: String = "",
     val horaFin: String = "",
     val direccion: String = "",

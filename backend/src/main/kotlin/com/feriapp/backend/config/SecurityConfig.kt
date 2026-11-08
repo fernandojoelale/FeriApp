@@ -35,6 +35,7 @@ open class SecurityConfig(
                 auth.requestMatchers("/api/auth/**", "/error").permitAll()
                 // Consultar ferias no requiere sesion; reservar y publicar si (RNF03).
                 auth.requestMatchers(HttpMethod.GET, "/api/ferias/mias").hasRole("ORGANIZADOR")
+                auth.requestMatchers(HttpMethod.GET, "/api/ferias/*/reservas").hasRole("ORGANIZADOR")
                 auth.requestMatchers(HttpMethod.GET, "/api/ferias", "/api/ferias/**").permitAll()
                 auth.requestMatchers(HttpMethod.POST, "/api/ferias").hasRole("ORGANIZADOR")
                 auth.requestMatchers("/api/reservas/**").hasRole("FERIANTE")

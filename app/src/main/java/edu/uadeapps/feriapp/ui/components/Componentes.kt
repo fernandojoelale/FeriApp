@@ -71,7 +71,7 @@ fun EncabezadoFeri(titulo: String, subtitulo: String? = null, onVolver: (() -> U
         Column {
             Text(titulo, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
             if (subtitulo != null) {
-                Text(subtitulo, color = Color.White, fontSize = 13.sp)
+                Text(subtitulo, color = Color.White, fontSize = 14.sp)
             }
         }
     }

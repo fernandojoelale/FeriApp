@@ -1,6 +1,7 @@
 package edu.uadeapps.feriapp
 
 import edu.uadeapps.feriapp.domain.model.NuevaFeria
+import edu.uadeapps.feriapp.domain.model.PosicionPuesto
 import edu.uadeapps.feriapp.domain.usecase.validarNuevaFeria
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -23,8 +24,11 @@ class ValidacionFeriaTest {
         longitud = -58.42,
         rubro = "Artesanias",
         precioPuesto = 18000.0,
-        cantidadPuestos = 20
+        puestos = plano(4, 5)
     )
+
+    private fun plano(columnas: Int, filas: Int) =
+        (0 until filas).flatMap { y -> (0 until columnas).map { x -> PosicionPuesto(x, y) } }
 
     @Test
     fun feriaValida_noTieneErrores() {
@@ -57,9 +61,30 @@ class ValidacionFeriaTest {
     }
 
     @Test
-    fun cantidadDePuestosFueraDeRango_esInvalida() {
-        assertNotNull(validarNuevaFeria(feriaValida().copy(cantidadPuestos = 0), hoy))
-        assertNotNull(validarNuevaFeria(feriaValida().copy(cantidadPuestos = 201), hoy))
+    fun sinPuestosEnElPlano_esInvalido() {
+        assertEquals("Marcá en el plano al menos un puesto.", validarNuevaFeria(feriaValida().copy(puestos = emptyList()), hoy))
+    }
+
+    @Test
+    fun masDe200Puestos_esInvalido() {
+        assertNotNull(validarNuevaFeria(feriaValida().copy(puestos = plano(6, 40)), hoy))
+    }
+
+    @Test
+    fun posicionesRepetidas_sonInvalidas() {
+        assertNotNull(validarNuevaFeria(feriaValida().copy(puestos = listOf(PosicionPuesto(0, 0), PosicionPuesto(0, 0))), hoy))
+    }
+
+    @Test
+    fun posicionFueraDelPlano_esInvalida() {
+        assertNotNull(validarNuevaFeria(feriaValida().copy(puestos = listOf(PosicionPuesto(9, 0))), hoy))
+        assertNotNull(validarNuevaFeria(feriaValida().copy(puestos = listOf(PosicionPuesto(-1, 0))), hoy))
+    }
+
+    @Test
+    fun planoConPasillos_esValido() {
+        val sinPasillo = plano(4, 3).filterNot { it.posX == 2 }
+        assertNull(validarNuevaFeria(feriaValida().copy(puestos = sinPasillo), hoy))
     }
 
     @Test

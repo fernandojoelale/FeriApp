@@ -124,7 +124,7 @@ private fun TarjetaReserva(reserva: Reserva, onClick: (Long) -> Unit) {
         Text(
             "${formatearFecha(reserva.feriaFecha)} · ${formatearHorario(reserva.horaInicio, reserva.horaFin)}",
             color = FeriColors.TextoSecundario,
-            fontSize = 13.sp
+            fontSize = 14.sp
         )
         Text(
             "Puesto N° ${reserva.numeroPuesto} · ${formatearPrecio(reserva.precioPuesto)}",
@@ -132,6 +132,6 @@ private fun TarjetaReserva(reserva: Reserva, onClick: (Long) -> Unit) {
             fontSize = 14.sp,
             modifier = Modifier.padding(top = 4.dp)
         )
-        Text(reserva.comprobante, color = FeriColors.Primario, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
+        Text(reserva.comprobante, color = FeriColors.Primario, fontSize = 14.sp, modifier = Modifier.padding(top = 4.dp))
     }
 }

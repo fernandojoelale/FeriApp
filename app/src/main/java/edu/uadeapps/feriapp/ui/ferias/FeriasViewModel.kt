@@ -76,6 +76,8 @@ class FeriasViewModel(
                 id = feria.id,
                 nombre = feria.nombre,
                 fecha = feria.fecha,
+                horaInicio = feria.horaInicio,
+                horaFin = feria.horaFin,
                 barrio = feria.zona,
                 rubro = feria.rubro,
                 distancia = "",

@@ -8,7 +8,7 @@ import androidx.room.RoomDatabase
 /** Base local (Room): copia de ferias, puestos y reservas para consultar sin conexión. */
 @Database(
     entities = [FeriaEntity::class, PuestoEntity::class, ReservaEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class FeriAppDatabase : RoomDatabase() {

@@ -5,4 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository
 
 interface ReservaRepository : JpaRepository<Reserva, Long> {
     fun findByFerianteIdOrderByFechaReservaDesc(ferianteId: Long): List<Reserva>
+    fun findByFeriaIdOrderByPuestoNumero(feriaId: Long): List<Reserva>
 }

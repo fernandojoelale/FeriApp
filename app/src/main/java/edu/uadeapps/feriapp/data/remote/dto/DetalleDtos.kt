@@ -34,5 +34,16 @@ data class ReservaDto(
     val precioPuesto: Double = 0.0
 )
 
+data class ReservaDeFeriaDto(
+    val reservaId: Long = 0,
+    val comprobante: String = "",
+    val puestoId: Long = 0,
+    val numeroPuesto: Int = 0,
+    val ferianteNombre: String = "",
+    val ferianteEmail: String = "",
+    val ferianteRubro: String? = null,
+    val fechaReserva: String = ""
+)
+
 /** Cuerpo de error del backend: {"codigo": "...", "mensaje": "..."} */
 data class ErrorBodyDto(val codigo: String? = null, val mensaje: String? = null)

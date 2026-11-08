@@ -35,6 +35,7 @@ import edu.uadeapps.feriapp.ui.auth.RegistroScreen
 import edu.uadeapps.feriapp.ui.ferias.FeriaDetalleScreen
 import edu.uadeapps.feriapp.ui.ferias.PuestosScreen
 import edu.uadeapps.feriapp.ui.reservas.ReservaConfirmadaScreen
+import edu.uadeapps.feriapp.ui.organizador.DetalleReservasScreen
 import edu.uadeapps.feriapp.ui.organizador.PublicarFeriaScreen
 import edu.uadeapps.feriapp.ui.sesion.SesionViewModel
 import edu.uadeapps.feriapp.ui.theme.FeriAppTheme
@@ -100,6 +101,7 @@ fun AppNavigation(
                 onLoginClick = { navController.navigate("login") },
                 onRegistroClick = { navController.navigate("registro") },
                 onFeriaClick = { id -> navController.navigate("feria/$id") },
+                onFeriaOrganizadorClick = { id -> navController.navigate("reservas-feria/$id") },
                 onReservaClick = { id -> navController.navigate("reserva/$id") },
                 onPublicarFeriaClick = { navController.navigate("publicar") },
                 onCerrarSesion = { sesionViewModel.cerrarSesion() }
@@ -147,6 +149,13 @@ fun AppNavigation(
         }
 
         composable(
+            route = "reservas-feria/{feriaId}",
+            arguments = listOf(navArgument("feriaId") { type = NavType.LongType })
+        ) {
+            DetalleReservasScreen(onVolverClick = { navController.popBackStack() })
+        }
+
+        composable(
             route = "puestos/{feriaId}",
             arguments = listOf(navArgument("feriaId") { type = NavType.LongType })
         ) {
@@ -174,10 +183,10 @@ fun AppNavigation(
         }
     }
 
-    // Tocar la notificación de una reserva lleva directo al detalle de esa feria.
+    // Tocar la notificación de una reserva lleva al detalle con reservas de esa feria (organizador).
     LaunchedEffect(feriaDeNotificacion) {
         feriaDeNotificacion?.let { id ->
-            navController.navigate("feria/$id")
+            navController.navigate("reservas-feria/$id")
             onNotificacionAtendida()
         }
     }

@@ -3,6 +3,7 @@ package com.feriapp.backend.controller
 import com.feriapp.backend.dto.CrearFeriaRequest
 import com.feriapp.backend.dto.FeriaDetalleDto
 import com.feriapp.backend.dto.FeriaResponseDto
+import com.feriapp.backend.dto.ReservaDeFeriaDto
 import com.feriapp.backend.model.Usuario
 import com.feriapp.backend.service.FeriaService
 import org.springframework.http.HttpStatus
@@ -30,6 +31,14 @@ class FeriaController(
     @GetMapping("/mias")
     fun misFerias(@AuthenticationPrincipal organizador: Usuario): ResponseEntity<List<FeriaResponseDto>> =
         ResponseEntity.ok(feriaService.obtenerDeOrganizador(organizador.id))
+
+    // Solo ORGANIZADOR dueño de la feria: quién reservó cada puesto.
+    @GetMapping("/{id}/reservas")
+    fun reservasDeFeria(
+        @AuthenticationPrincipal organizador: Usuario,
+        @PathVariable id: Long
+    ): ResponseEntity<List<ReservaDeFeriaDto>> =
+        ResponseEntity.ok(feriaService.obtenerReservasDeFeria(organizador.id, id))
 
     // Solo ORGANIZADOR: el organizador es quien tiene la sesión iniciada.
     @PostMapping

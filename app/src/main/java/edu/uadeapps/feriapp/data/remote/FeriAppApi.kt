@@ -2,6 +2,7 @@ package edu.uadeapps.feriapp.data.remote
 
 import edu.uadeapps.feriapp.data.remote.dto.CrearFeriaDto
 import edu.uadeapps.feriapp.data.remote.dto.FeriaDetalleDto
+import edu.uadeapps.feriapp.data.remote.dto.ReservaDeFeriaDto
 import edu.uadeapps.feriapp.data.remote.dto.ReservaDto
 import edu.uadeapps.feriapp.data.remote.dto.ReservaRequestDto
 import edu.uadeapps.feriapp.data.remote.dto.TokenPushDto
@@ -21,6 +22,7 @@ data class FeriaDto(
     val rubro: String = "",
     val precioPuesto: Double = 0.0,
     val puestosLibres: Int = 0,
+    val totalPuestos: Int = 0,
     val horaInicio: String = "",
     val horaFin: String = "",
     val direccion: String = "",
@@ -33,6 +35,9 @@ data class FeriaDto(
 interface FeriAppApi {
     @GET("api/ferias")
     suspend fun getFerias(): List<FeriaDto>
+
+    @GET("api/ferias/{id}/reservas")
+    suspend fun getReservasDeFeria(@Path("id") feriaId: Long): List<ReservaDeFeriaDto>
 
     @GET("api/ferias/mias")
     suspend fun getMisFerias(): List<FeriaDto>

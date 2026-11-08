@@ -7,10 +7,12 @@ import edu.uadeapps.feriapp.data.local.db.toEntity
 import edu.uadeapps.feriapp.data.mapper.toDomain
 import edu.uadeapps.feriapp.data.remote.FeriAppApi
 import edu.uadeapps.feriapp.data.remote.dto.CrearFeriaDto
+import edu.uadeapps.feriapp.data.remote.dto.PosicionPuestoDto
 import edu.uadeapps.feriapp.data.remote.toErrorApp
 import edu.uadeapps.feriapp.domain.Feria
 import edu.uadeapps.feriapp.domain.model.FeriaDetalle
 import edu.uadeapps.feriapp.domain.model.NuevaFeria
+import edu.uadeapps.feriapp.domain.model.ReservaDeFeria
 import edu.uadeapps.feriapp.domain.repository.DetalleFeriaRepository
 import java.io.IOException
 import kotlin.coroutines.cancellation.CancellationException
@@ -46,7 +48,7 @@ class DetalleFeriaRepositoryImpl(
                 longitud = nueva.longitud,
                 rubro = nueva.rubro,
                 precioPuesto = nueva.precioPuesto,
-                cantidadPuestos = nueva.cantidadPuestos
+                puestos = nueva.puestos.map { PosicionPuestoDto(it.posX, it.posY) }
             )
             Result.success(api.crearFeria(dto).toDomain())
         } catch (e: CancellationException) {
@@ -70,6 +72,16 @@ class DetalleFeriaRepositoryImpl(
         } catch (e: Exception) {
             val guardadas = if (e is IOException) leerMisFeriasGuardadas() else null
             if (guardadas != null) Result.success(guardadas) else Result.failure(e.toErrorApp())
+        }
+
+    /** Las reservas de una feria las ve solo su organizador y siempre se piden al servidor. */
+    override suspend fun obtenerReservasDeFeria(feriaId: Long): Result<List<ReservaDeFeria>> =
+        try {
+            Result.success(api.getReservasDeFeria(feriaId).map { it.toDomain() })
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Result.failure(e.toErrorApp())
         }
 
     private suspend fun guardarDetalle(

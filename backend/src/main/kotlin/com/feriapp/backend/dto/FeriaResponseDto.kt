@@ -16,10 +16,11 @@ data class FeriaResponseDto(
     val longitud: Double,
     val rubro: String,
     val precioPuesto: Double,
-    val puestosLibres: Int
+    val puestosLibres: Int,
+    val totalPuestos: Int
 )
 
-fun Feria.toDto(puestosLibres: Int): FeriaResponseDto = FeriaResponseDto(
+fun Feria.toDto(puestosLibres: Int, totalPuestos: Int): FeriaResponseDto = FeriaResponseDto(
     id = this.id,
     organizadorId = this.organizador.id,
     organizadorNombre = this.organizador.nombre,
@@ -33,5 +34,6 @@ fun Feria.toDto(puestosLibres: Int): FeriaResponseDto = FeriaResponseDto(
     longitud = this.longitud,
     rubro = this.rubro,
     precioPuesto = this.precioPuesto,
-    puestosLibres = puestosLibres
+    puestosLibres = puestosLibres,
+    totalPuestos = totalPuestos
 )

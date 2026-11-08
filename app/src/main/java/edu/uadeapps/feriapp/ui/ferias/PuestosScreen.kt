@@ -15,9 +15,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -42,6 +41,8 @@ import edu.uadeapps.feriapp.ui.components.BotonSecundario
 import edu.uadeapps.feriapp.ui.components.EncabezadoFeri
 import edu.uadeapps.feriapp.ui.components.EstadoCargando
 import edu.uadeapps.feriapp.ui.components.EstadoError
+import edu.uadeapps.feriapp.ui.components.LeyendaPlano
+import edu.uadeapps.feriapp.ui.components.PlanoPuestos
 import edu.uadeapps.feriapp.ui.components.TipoAviso
 import edu.uadeapps.feriapp.ui.components.formatearActualizacion
 import edu.uadeapps.feriapp.ui.components.formatearPrecio
@@ -75,23 +76,19 @@ fun PuestosScreen(
                 onReintentar = { viewModel.cargar() }
             )
             detalle != null -> {
-                Column(modifier = Modifier.weight(1f).padding(horizontal = 16.dp, vertical = 12.dp)) {
-                    Leyenda()
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                ) {
+                    LeyendaPlano()
                     Spacer(modifier = Modifier.height(12.dp))
-                    LazyVerticalGrid(
-                        columns = GridCells.Fixed(5),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        items(detalle.puestos.sortedBy { it.numero }, key = { it.id }) { puesto ->
-                            CeldaPuesto(
-                                puesto = puesto,
-                                elegido = puesto.id == estado.seleccionadoId,
-                                onClick = { viewModel.seleccionar(puesto) }
-                            )
-                        }
-                    }
+                    PlanoPuestos(
+                        puestos = detalle.puestos,
+                        seleccionadoId = estado.seleccionadoId,
+                        onPuestoClick = { viewModel.seleccionar(it) }
+                    )
                 }
 
                 Column(
@@ -137,54 +134,5 @@ fun PuestosScreen(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun Leyenda() {
-    Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
-        ItemLeyenda("Libre", FeriColors.Disponible)
-        ItemLeyenda("Ocupado", FeriColors.Ocupado)
-        ItemLeyenda("Elegido", FeriColors.Primario)
-    }
-}
-
-@Composable
-private fun ItemLeyenda(texto: String, color: Color) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(modifier = Modifier.size(14.dp).clip(RoundedCornerShape(4.dp)).background(color))
-        Text(" $texto", fontSize = 12.sp, color = FeriColors.Texto)
-    }
-}
-
-@Composable
-private fun CeldaPuesto(puesto: Puesto, elegido: Boolean, onClick: () -> Unit) {
-    val fondo = when {
-        elegido -> FeriColors.Primario
-        puesto.disponible -> FeriColors.Disponible.copy(alpha = 0.12f)
-        else -> FeriColors.Ocupado
-    }
-    val colorTexto = when {
-        elegido || !puesto.disponible -> Color.White
-        else -> FeriColors.Disponible
-    }
-    val estadoTexto = when {
-        elegido -> "Elegido"
-        puesto.disponible -> "Libre"
-        else -> "Ocupado"
-    }
-    Column(
-        modifier = Modifier
-            .aspectRatio(1f)
-            .clip(RoundedCornerShape(10.dp))
-            .background(fondo)
-            .border(1.dp, if (puesto.disponible || elegido) FeriColors.Disponible else FeriColors.Ocupado, RoundedCornerShape(10.dp))
-            .clickable(enabled = puesto.disponible, onClick = onClick)
-            .semantics { contentDescription = "Puesto ${puesto.numero}, $estadoTexto" },
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text("${puesto.numero}", color = colorTexto, fontSize = 16.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
-        Text(estadoTexto, color = colorTexto, fontSize = 9.sp, textAlign = TextAlign.Center)
     }
 }

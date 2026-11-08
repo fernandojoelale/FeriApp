@@ -1,9 +1,11 @@
 package com.feriapp.backend
 
 import com.feriapp.backend.dto.CrearFeriaRequest
+import com.feriapp.backend.dto.PosicionPuestoRequest
 import com.feriapp.backend.exception.SolicitudInvalidaException
 import com.feriapp.backend.repository.FeriaRepository
 import com.feriapp.backend.repository.PuestoRepository
+import com.feriapp.backend.repository.ReservaRepository
 import com.feriapp.backend.repository.UsuarioRepository
 import com.feriapp.backend.service.FeriaService
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -17,7 +19,8 @@ class FeriaServiceValidacionTest {
     private val service = FeriaService(
         mock(FeriaRepository::class.java),
         mock(UsuarioRepository::class.java),
-        mock(PuestoRepository::class.java)
+        mock(PuestoRepository::class.java),
+        mock(ReservaRepository::class.java)
     )
 
     private fun request(
@@ -26,11 +29,12 @@ class FeriaServiceValidacionTest {
         horaInicio: String = "10:00",
         horaFin: String = "18:00",
         precio: Double = 1000.0,
-        cantidad: Int = 10
+        cantidad: Int? = 10,
+        puestos: List<PosicionPuestoRequest>? = null
     ) = CrearFeriaRequest(
         nombre = nombre, fecha = fecha, horaInicio = horaInicio, horaFin = horaFin,
         direccion = "Calle 123", zona = "Palermo", latitud = -34.5, longitud = -58.4,
-        rubro = "Artesanias", precioPuesto = precio, cantidadPuestos = cantidad
+        rubro = "Artesanias", precioPuesto = precio, cantidadPuestos = cantidad, puestos = puestos
     )
 
     @Test
@@ -59,5 +63,27 @@ class FeriaServiceValidacionTest {
     @Test
     fun cantidadDePuestosInvalida_seRechaza() {
         assertThrows(SolicitudInvalidaException::class.java) { service.crearFeria(1, request(cantidad = 0)) }
+    }
+
+    @Test
+    fun dosPuestosEnLaMismaPosicion_seRechaza() {
+        val repetidos = listOf(PosicionPuestoRequest(0, 0), PosicionPuestoRequest(0, 0))
+        assertThrows(SolicitudInvalidaException::class.java) { service.crearFeria(1, request(puestos = repetidos)) }
+    }
+
+    @Test
+    fun puestoFueraDelPlano_seRechaza() {
+        val fuera = listOf(PosicionPuestoRequest(50, 0))
+        assertThrows(SolicitudInvalidaException::class.java) { service.crearFeria(1, request(puestos = fuera)) }
+    }
+
+    @Test
+    fun planoVacio_seRechaza() {
+        assertThrows(SolicitudInvalidaException::class.java) { service.crearFeria(1, request(puestos = emptyList())) }
+    }
+
+    @Test
+    fun sinPlanoNiCantidad_seRechaza() {
+        assertThrows(SolicitudInvalidaException::class.java) { service.crearFeria(1, request(cantidad = null)) }
     }
 }

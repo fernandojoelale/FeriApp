@@ -3,6 +3,12 @@ package edu.uadeapps.feriapp.ui.ferias
 import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import edu.uadeapps.feriapp.domain.FiltroFecha
+import edu.uadeapps.feriapp.domain.cumplePrecioMaximo
+import edu.uadeapps.feriapp.ui.components.formatearFechaHorario
+import edu.uadeapps.feriapp.ui.components.formatearPrecio
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -41,6 +47,8 @@ data class FeriaItem(
     val id: Long = 0,
     val nombre: String,
     val fecha: String,
+    val horaInicio: String = "",
+    val horaFin: String = "",
     val barrio: String,
     val rubro: String = "",
     val distancia: String,
@@ -50,6 +58,12 @@ data class FeriaItem(
     val latitud: Double = 0.0,
     val longitud: Double = 0.0
 )
+
+fun textoFiltroFecha(f: FiltroFecha): String = when (f) {
+    is FiltroFecha.Cualquiera -> "Fecha"
+    is FiltroFecha.ProximosDias -> f.etiqueta
+    is FiltroFecha.Dia -> f.fecha.format(java.time.format.DateTimeFormatter.ofPattern("d/M"))
+}
 
 enum class OrdenFerias { NINGUNO, FECHA, PRECIO, CERCA }
 
@@ -73,6 +87,18 @@ fun FeriasScreen(
     var menuExpanded by remember { mutableStateOf(false) }
     var orden by remember { mutableStateOf(OrdenFerias.NINGUNO) }
     var soloConLugar by remember { mutableStateOf(false) }
+    var filtroFecha by remember { mutableStateOf<FiltroFecha>(FiltroFecha.Cualquiera) }
+    var precioMaximo by remember { mutableStateOf<Double?>(null) }
+    var menuFecha by remember { mutableStateOf(false) }
+    var menuPrecio by remember { mutableStateOf(false) }
+    var mostrarCalendario by remember { mutableStateOf(false) }
+    fun limpiarFiltros() {
+        searchQuery = ""
+        rubroSeleccionado = "Todos los rubros"
+        soloConLugar = false
+        filtroFecha = FiltroFecha.Cualquiera
+        precioMaximo = null
+    }
 
     // "Cerca de mí": la ubicación se usa solo acá, en el celular, para calcular distancias.
     val context = LocalContext.current
@@ -134,7 +160,7 @@ fun FeriasScreen(
                     Text(
                         text = "Encontrá un espacio para tus productos",
                         color = Color.White.copy(alpha = 0.85f),
-                        fontSize = 13.sp
+                        fontSize = 14.sp
                     )
                 }
                 IconButton(onClick = onLoginClick, modifier = Modifier.padding(start = 16.dp)) {
@@ -187,7 +213,8 @@ fun FeriasScreen(
                     val coincideRubro = rubroSeleccionado == "Todos los rubros" ||
                             feria.rubro.equals(rubroSeleccionado, ignoreCase = true)
 
-                    coincideBusqueda && coincideRubro
+                    coincideBusqueda && coincideRubro &&
+                        filtroFecha.cumple(feria.fecha) && cumplePrecioMaximo(feria.precioNumerico, precioMaximo)
                 }.let { lista ->
                     val conLugar = (if (soloConLugar) lista.filter { it.puestosLibres > 0 } else lista).map { f ->
                         val u = ubicacion
@@ -310,7 +337,10 @@ fun FeriasScreen(
                         Spacer(modifier = Modifier.height(12.dp))
 
                         // ORDEN Y DISPONIBILIDAD (RF02)
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.horizontalScroll(rememberScrollState())
+                        ) {
                             FilterChip(
                                 selected = orden == OrdenFerias.CERCA,
                                 onClick = {
@@ -345,6 +375,58 @@ fun FeriasScreen(
                             )
                         }
 
+                        // FILTROS POR FECHA Y PRECIO (RF02)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Box {
+                                FilterChip(
+                                    selected = filtroFecha != FiltroFecha.Cualquiera,
+                                    onClick = { menuFecha = true },
+                                    label = { Text(textoFiltroFecha(filtroFecha) + " ▾") }
+                                )
+                                DropdownMenu(expanded = menuFecha, onDismissRequest = { menuFecha = false }) {
+                                    DropdownMenuItem(text = { Text("Cualquier fecha") }, onClick = { filtroFecha = FiltroFecha.Cualquiera; menuFecha = false })
+                                    DropdownMenuItem(text = { Text("Esta semana") }, onClick = { filtroFecha = FiltroFecha.ProximosDias(7, "Esta semana"); menuFecha = false })
+                                    DropdownMenuItem(text = { Text("Este mes") }, onClick = { filtroFecha = FiltroFecha.ProximosDias(30, "Este mes"); menuFecha = false })
+                                    DropdownMenuItem(text = { Text("Elegir un día…") }, onClick = { menuFecha = false; mostrarCalendario = true })
+                                }
+                            }
+                            Box {
+                                FilterChip(
+                                    selected = precioMaximo != null,
+                                    onClick = { menuPrecio = true },
+                                    label = { Text((precioMaximo?.let { "Hasta ${formatearPrecio(it)}" } ?: "Precio") + " ▾") }
+                                )
+                                DropdownMenu(expanded = menuPrecio, onDismissRequest = { menuPrecio = false }) {
+                                    DropdownMenuItem(text = { Text("Cualquier precio") }, onClick = { precioMaximo = null; menuPrecio = false })
+                                    listOf(10000.0, 20000.0, 30000.0, 50000.0).forEach { tope ->
+                                        DropdownMenuItem(
+                                            text = { Text("Hasta ${formatearPrecio(tope)}") },
+                                            onClick = { precioMaximo = tope; menuPrecio = false }
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        if (mostrarCalendario) {
+                            val pickerState = rememberDatePickerState()
+                            DatePickerDialog(
+                                onDismissRequest = { mostrarCalendario = false },
+                                confirmButton = {
+                                    TextButton(onClick = {
+                                        pickerState.selectedDateMillis?.let { ms ->
+                                            filtroFecha = FiltroFecha.Dia(
+                                                java.time.Instant.ofEpochMilli(ms).atZone(java.time.ZoneOffset.UTC).toLocalDate()
+                                            )
+                                        }
+                                        mostrarCalendario = false
+                                    }) { Text("Aceptar", fontSize = 14.sp) }
+                                },
+                                dismissButton = { TextButton(onClick = { mostrarCalendario = false }) { Text("Cancelar", fontSize = 14.sp) } }
+                            ) { DatePicker(state = pickerState) }
+                        }
+
                         avisoUbicacion?.let {
                             Spacer(modifier = Modifier.height(12.dp))
                             AvisoCard(titulo = "Ubicación", mensaje = it, tipo = TipoAviso.ADVERTENCIA)
@@ -365,11 +447,16 @@ fun FeriasScreen(
                                     .padding(vertical = 32.dp),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text(
-                                    text = "No hay ferias que coincidan con la búsqueda o el rubro seleccionado.",
-                                    color = Color.Gray,
-                                    fontSize = 14.sp
-                                )
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text(
+                                        text = "No hay ferias con esos filtros",
+                                        color = Color(0xFF1F2937),
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Spacer(modifier = Modifier.height(12.dp))
+                                    OutlinedButton(onClick = { limpiarFiltros() }) { Text("Limpiar filtros", fontSize = 14.sp) }
+                                }
                             }
                         }
                     } else {
@@ -404,10 +491,10 @@ fun FeriaCard(feria: FeriaItem, onClick: () -> Unit = {}) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = feria.nombre, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1F2937))
                 Spacer(modifier = Modifier.height(2.dp))
-                Text(text = feria.fecha, fontSize = 12.sp, color = Color(0xFF6B7280))
+                Text(text = formatearFechaHorario(feria.fecha, feria.horaInicio, feria.horaFin), fontSize = 14.sp, color = Color(0xFF6B7280))
                 Text(
                     text = listOf(feria.barrio, feria.rubro, feria.distancia).filter { it.isNotBlank() }.joinToString(" · "),
-                    fontSize = 12.sp,
+                    fontSize = 14.sp,
                     color = Color(0xFF6B7280)
                 )
                 Spacer(modifier = Modifier.height(4.dp))
@@ -423,7 +510,7 @@ fun FeriaCard(feria: FeriaItem, onClick: () -> Unit = {}) {
                 ) {
                     Text(
                         text = if (feria.puestosLibres == 1) "1 puesto libre" else "${feria.puestosLibres} puestos libres",
-                        fontSize = 11.sp, fontWeight = FontWeight.Bold, color = pillTxt
+                        fontSize = 14.sp, fontWeight = FontWeight.Bold, color = pillTxt
                     )
                 }
             }

@@ -18,6 +18,7 @@ import edu.uadeapps.feriapp.domain.repository.ReservaRepository
 import edu.uadeapps.feriapp.domain.usecase.CerrarSesionUseCase
 import edu.uadeapps.feriapp.domain.usecase.CrearFeriaUseCase
 import edu.uadeapps.feriapp.domain.usecase.ObtenerMisFeriasUseCase
+import edu.uadeapps.feriapp.domain.usecase.ObtenerReservasDeFeriaUseCase
 import edu.uadeapps.feriapp.domain.usecase.IniciarSesionUseCase
 import edu.uadeapps.feriapp.domain.usecase.ObservarSesionUseCase
 import edu.uadeapps.feriapp.domain.usecase.ObtenerDetalleFeriaUseCase
@@ -40,6 +41,7 @@ interface AppContainer {
     val obtenerReservaUseCase: ObtenerReservaUseCase
     val crearFeriaUseCase: CrearFeriaUseCase
     val obtenerMisFeriasUseCase: ObtenerMisFeriasUseCase
+    val obtenerReservasDeFeriaUseCase: ObtenerReservasDeFeriaUseCase
     val conectado: Flow<Boolean>
     val pushTokenManager: PushTokenManager
 }
@@ -72,6 +74,7 @@ class AppDataContainer(context: Context) : AppContainer {
     override val obtenerReservaUseCase by lazy { ObtenerReservaUseCase(reservaRepository) }
     override val crearFeriaUseCase by lazy { CrearFeriaUseCase(detalleFeriaRepository, authRepository) }
     override val obtenerMisFeriasUseCase by lazy { ObtenerMisFeriasUseCase(detalleFeriaRepository) }
+    override val obtenerReservasDeFeriaUseCase by lazy { ObtenerReservasDeFeriaUseCase(detalleFeriaRepository) }
 
     override val conectado: Flow<Boolean> by lazy { ConectividadObserver(context).conectado }
     override val pushTokenManager by lazy { PushTokenManager(context.applicationContext, api, sessionManager) }

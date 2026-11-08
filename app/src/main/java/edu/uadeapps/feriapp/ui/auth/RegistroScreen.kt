@@ -105,7 +105,7 @@ fun RegistroScreen(
             Text(
                 text = if (rol == Rol.FERIANTE) "Buscás puestos para vender tus productos."
                 else "Publicás ferias y gestionás sus puestos.",
-                fontSize = 13.sp,
+                fontSize = 14.sp,
                 color = FeriColors.TextoSecundario,
                 modifier = Modifier.padding(top = 8.dp)
             )
@@ -168,7 +168,7 @@ fun RegistroScreen(
             Spacer(modifier = Modifier.height(12.dp))
             Text(
                 text = "Pedimos solo los datos necesarios. Tu ubicación nunca se guarda ni se envía al servidor.",
-                fontSize = 12.sp,
+                fontSize = 14.sp,
                 color = FeriColors.TextoSecundario
             )
 

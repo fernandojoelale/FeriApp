@@ -3,6 +3,7 @@ package edu.uadeapps.feriapp.domain.usecase
 import edu.uadeapps.feriapp.domain.Feria
 import edu.uadeapps.feriapp.domain.model.ErrorApp
 import edu.uadeapps.feriapp.domain.model.NuevaFeria
+import edu.uadeapps.feriapp.domain.model.ReservaDeFeria
 import edu.uadeapps.feriapp.domain.model.Rol
 import edu.uadeapps.feriapp.domain.repository.AuthRepository
 import edu.uadeapps.feriapp.domain.repository.DetalleFeriaRepository
@@ -12,6 +13,8 @@ import java.time.LocalTime
 import java.time.format.DateTimeParseException
 
 const val MAX_PUESTOS_POR_FERIA = 200
+const val MAX_COLUMNAS_PLANO = 6
+const val MAX_FILAS_PLANO = 30
 
 /**
  * Validaciones de RF01 que se pueden hacer sin red. Devuelve el mensaje de error
@@ -36,8 +39,15 @@ fun validarNuevaFeria(f: NuevaFeria, hoy: LocalDate = LocalDate.now()): String? 
         return "Los horarios deben tener el formato HH:mm (ej: 10:00)."
     }
     if (f.precioPuesto <= 0) return "El precio por puesto debe ser mayor a 0."
-    if (f.cantidadPuestos !in 1..MAX_PUESTOS_POR_FERIA) {
-        return "La cantidad de puestos debe estar entre 1 y $MAX_PUESTOS_POR_FERIA."
+    if (f.puestos.isEmpty()) return "Marcá en el plano al menos un puesto."
+    if (f.puestos.size > MAX_PUESTOS_POR_FERIA) {
+        return "La feria puede tener hasta $MAX_PUESTOS_POR_FERIA puestos."
+    }
+    if (f.puestos.any { it.posX !in 0 until MAX_COLUMNAS_PLANO || it.posY !in 0 until MAX_FILAS_PLANO }) {
+        return "Hay puestos fuera del plano del predio."
+    }
+    if (f.puestos.map { it.posX to it.posY }.toSet().size != f.puestos.size) {
+        return "Hay dos puestos en la misma posición del plano."
     }
     if (f.latitud !in -90.0..90.0 || f.longitud !in -180.0..180.0) {
         return "La ubicación (latitud/longitud) no es válida."
@@ -69,4 +79,10 @@ class CrearFeriaUseCase(
 
 class ObtenerMisFeriasUseCase(private val repository: DetalleFeriaRepository) {
     suspend operator fun invoke(): Result<List<Feria>> = repository.obtenerMisFerias()
+}
+
+/** El organizador ve quién reservó cada puesto de una de sus ferias. */
+class ObtenerReservasDeFeriaUseCase(private val repository: DetalleFeriaRepository) {
+    suspend operator fun invoke(feriaId: Long): Result<List<ReservaDeFeria>> =
+        repository.obtenerReservasDeFeria(feriaId)
 }

@@ -24,6 +24,7 @@ data class FeriaEntity(
     val rubro: String,
     val precioPuesto: Double,
     val puestosLibres: Int,
+    val totalPuestos: Int,
     val organizadorNombre: String,
     val actualizadoEn: Long
 )

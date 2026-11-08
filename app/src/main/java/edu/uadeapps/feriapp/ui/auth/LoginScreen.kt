@@ -65,7 +65,7 @@ fun LoginScreen(
             Text(
                 text = "Encontrá tu lugar en la próxima feria",
                 color = Color.White,
-                fontSize = 12.sp
+                fontSize = 14.sp
             )
         }
 
@@ -186,7 +186,7 @@ fun LoginScreen(
             // Texto de pie de página
             Text(
                 text = "El rol se recupera de tu cuenta al iniciar sesión.\nLa reserva no incluye el pago.",
-                fontSize = 12.sp,
+                fontSize = 14.sp,
                 color = Color.Gray,
                 lineHeight = 16.sp
             )

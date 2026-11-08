@@ -24,6 +24,7 @@ fun MainScreen(
     onLoginClick: () -> Unit,
     onRegistroClick: () -> Unit,
     onFeriaClick: (Long) -> Unit,
+    onFeriaOrganizadorClick: (Long) -> Unit,
     onReservaClick: (Long) -> Unit,
     onPublicarFeriaClick: () -> Unit,
     onCerrarSesion: () -> Unit
@@ -54,7 +55,7 @@ fun MainScreen(
                 PantallasFooter.RESERVAS ->
                     if (sesion?.rol == Rol.ORGANIZADOR) {
                         // Las cuentas de organizador no reservan: ven y publican sus ferias.
-                        MisFeriasScreen(onPublicarClick = onPublicarFeriaClick, onFeriaClick = onFeriaClick)
+                        MisFeriasScreen(onPublicarClick = onPublicarFeriaClick, onFeriaClick = onFeriaOrganizadorClick)
                     } else {
                         MisReservasScreen(
                             sesion = sesion,

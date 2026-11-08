@@ -99,15 +99,17 @@ private fun TarjetaMiFeria(feria: Feria, onClick: () -> Unit) {
             Text(
                 "${formatearFecha(feria.fecha)} · ${formatearHorario(feria.horaInicio, feria.horaFin)}",
                 color = FeriColors.TextoSecundario,
-                fontSize = 13.sp
+                fontSize = 14.sp
             )
             Text("${feria.zona} · ${formatearPrecio(feria.precioPuesto)} por puesto", color = FeriColors.Texto, fontSize = 14.sp)
+            val reservados = (feria.totalPuestos - feria.puestosLibres).coerceAtLeast(0)
             Text(
-                "Puestos libres: ${feria.puestosLibres}",
+                "Reservados: $reservados · Libres: ${feria.puestosLibres}" + if (feria.totalPuestos > 0) " (de ${feria.totalPuestos})" else "",
                 color = if (feria.puestosLibres > 0) FeriColors.Disponible else FeriColors.Ocupado,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold
             )
+            Text("Tocá para ver quién reservó", color = FeriColors.TextoSecundario, fontSize = 14.sp)
         }
     }
 }

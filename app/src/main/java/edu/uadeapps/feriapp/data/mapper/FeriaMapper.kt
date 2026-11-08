@@ -4,12 +4,14 @@ import edu.uadeapps.feriapp.data.remote.FeriaDto
 import edu.uadeapps.feriapp.data.remote.dto.AuthResponseDto
 import edu.uadeapps.feriapp.data.remote.dto.FeriaDetalleDto
 import edu.uadeapps.feriapp.data.remote.dto.PuestoDto
+import edu.uadeapps.feriapp.data.remote.dto.ReservaDeFeriaDto
 import edu.uadeapps.feriapp.data.remote.dto.ReservaDto
 import edu.uadeapps.feriapp.domain.Feria
 import edu.uadeapps.feriapp.domain.model.EstadoPuesto
 import edu.uadeapps.feriapp.domain.model.FeriaDetalle
 import edu.uadeapps.feriapp.domain.model.Puesto
 import edu.uadeapps.feriapp.domain.model.Reserva
+import edu.uadeapps.feriapp.domain.model.ReservaDeFeria
 import edu.uadeapps.feriapp.domain.model.Rol
 import edu.uadeapps.feriapp.domain.model.Session
 
@@ -22,6 +24,7 @@ fun FeriaDto.toDomain(): Feria {
         rubro = this.rubro,
         precioPuesto = this.precioPuesto,
         puestosLibres = this.puestosLibres,
+        totalPuestos = this.totalPuestos,
         horaInicio = this.horaInicio,
         horaFin = this.horaFin,
         direccion = this.direccion,
@@ -67,4 +70,15 @@ fun AuthResponseDto.toSession() = Session(
     nombre = nombre,
     email = email,
     usuarioId = usuarioId
+)
+
+fun ReservaDeFeriaDto.toDomain() = ReservaDeFeria(
+    reservaId = reservaId,
+    comprobante = comprobante,
+    puestoId = puestoId,
+    numeroPuesto = numeroPuesto,
+    ferianteNombre = ferianteNombre,
+    ferianteEmail = ferianteEmail,
+    ferianteRubro = ferianteRubro,
+    fechaReserva = fechaReserva
 )

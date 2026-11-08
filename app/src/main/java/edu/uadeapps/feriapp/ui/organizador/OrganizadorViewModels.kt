@@ -8,6 +8,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import edu.uadeapps.feriapp.FeriApp
 import edu.uadeapps.feriapp.domain.Feria
 import edu.uadeapps.feriapp.domain.model.NuevaFeria
+import edu.uadeapps.feriapp.domain.model.PosicionPuesto
 import edu.uadeapps.feriapp.domain.usecase.CrearFeriaUseCase
 import edu.uadeapps.feriapp.domain.usecase.ObtenerMisFeriasUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -65,21 +66,19 @@ class PublicarFeriaViewModel(
     fun publicar(
         nombre: String, fecha: String, horaInicio: String, horaFin: String,
         direccion: String, zona: String, latitud: String, longitud: String,
-        rubro: String, precio: String, cantidad: String
+        rubro: String, precio: String, puestos: List<PosicionPuesto>
     ) {
         if (_uiState.value.publicando) return
 
         val lat = latitud.trim().replace(',', '.').toDoubleOrNull()
         val lon = longitud.trim().replace(',', '.').toDoubleOrNull()
         val precioNum = precio.trim().replace(',', '.').toDoubleOrNull()
-        val cantidadNum = cantidad.trim().toIntOrNull()
         val errorNumerico = when {
             precioNum == null -> "Ingresá el precio por puesto (solo números)."
-            cantidadNum == null -> "Ingresá la cantidad de puestos (número entero)."
             lat == null || lon == null -> "Ingresá latitud y longitud con números (ej: -34.5875)."
             else -> null
         }
-        if (errorNumerico != null || precioNum == null || cantidadNum == null || lat == null || lon == null) {
+        if (errorNumerico != null || precioNum == null || lat == null || lon == null) {
             _uiState.value = PublicarUiState(error = errorNumerico)
             return
         }
@@ -95,7 +94,7 @@ class PublicarFeriaViewModel(
             longitud = lon,
             rubro = rubro.trim(),
             precioPuesto = precioNum,
-            cantidadPuestos = cantidadNum
+            puestos = puestos
         )
         viewModelScope.launch {
             _uiState.value = PublicarUiState(publicando = true)

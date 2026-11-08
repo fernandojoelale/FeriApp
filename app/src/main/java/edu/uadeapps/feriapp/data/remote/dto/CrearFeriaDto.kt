@@ -12,5 +12,7 @@ data class CrearFeriaDto(
     val longitud: Double,
     val rubro: String,
     val precioPuesto: Double,
-    val cantidadPuestos: Int
+    val puestos: List<PosicionPuestoDto>
 )
+
+data class PosicionPuestoDto(val posX: Int, val posY: Int)
