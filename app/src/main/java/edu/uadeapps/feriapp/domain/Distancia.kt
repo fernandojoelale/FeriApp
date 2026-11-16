@@ -4,6 +4,7 @@ import java.util.Locale
 import kotlin.math.asin
 import kotlin.math.cos
 import kotlin.math.pow
+import kotlin.math.round
 import kotlin.math.sin
 import kotlin.math.sqrt
 
@@ -22,8 +23,8 @@ fun distanciaKm(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double 
 fun formatearDistancia(km: Double): String = when {
     km < 1.0 -> "a ${(km * 1000).toInt()} m"
     km < 10.0 -> "a ${String.format(Locale.forLanguageTag("es-AR"), "%.1f", km)} km"
-    else -> "a ${km.toInt()} km"
+    else -> "a ${round(km).toInt()} km"
 }
 
-/** Las ferias sin coordenadas cargadas vienen en (0,0): no se puede calcular su distancia. */
+/** Las sin coordenadas cargadas vienen en (0,0): no se puede calcular su distancia. */
 fun tieneUbicacion(latitud: Double, longitud: Double): Boolean = latitud != 0.0 || longitud != 0.0

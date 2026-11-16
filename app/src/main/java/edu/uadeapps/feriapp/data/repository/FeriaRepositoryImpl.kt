@@ -28,14 +28,15 @@ class FeriaRepository(
 ) {
 
     suspend fun obtenerFerias(): Result<List<Feria>> = runCatching {
-        // Llama a la API y transforma cada FeriaDto en un objeto Feria
-        api.getFerias().map { dto -> dto.toDomain() }
+        val hoy = LocalDate.now().toString()
+        api.getFerias().filter { it.fecha >= hoy }.map { dto -> dto.toDomain() }
     }
 
-    /** Lo último que quedó guardado en el celular (null si todavía no se descargó nada). */
+    /** Lo último que quedó guardado en el celular (null si todavía no se descargó nada). Excluye ferias vencidas. */
     suspend fun leerGuardadas(): FeriasCargadas? {
+        val hoy = LocalDate.now().toString()
         val filas = try {
-            db?.feriaDao()?.listar(Coleccion.PUBLICAS)
+            db?.feriaDao()?.listar(Coleccion.PUBLICAS)?.filter { it.fecha >= hoy }
         } catch (e: Exception) {
             null
         }
@@ -44,17 +45,18 @@ class FeriaRepository(
     }
 
     /**
-     * Pide las ferias al servidor y las guarda en Room. Si no hay conexión usa la copia guardada;
-     * si tampoco hay copia, devuelve el error original.
+     * Pide las ferias al servidor y las guarda en Room filtrando ferias vencidas.
+     * Si no hay conexión usa la copia guardada.
      */
     suspend fun obtenerFeriasConCache(): Result<FeriasCargadas> {
         try {
-            val dtos = api.getFerias()
+            val hoy = LocalDate.now().toString()
+            val dtos = api.getFerias().filter { it.fecha >= hoy }
             val ahora = System.currentTimeMillis()
             try {
                 db?.feriaDao()?.let { dao ->
                     dao.reemplazar(Coleccion.PUBLICAS, dtos.map { it.toEntity(Coleccion.PUBLICAS, ahora) })
-                    dao.borrarVencidas(LocalDate.now().toString())
+                    dao.borrarVencidas(hoy)
                     db.puestoDao().borrarHuerfanos()
                 }
             } catch (e: Exception) {

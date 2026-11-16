@@ -17,7 +17,7 @@ if (file("google-services.json").exists()) {
 val apiBaseUrl: String = Properties().let { props ->
     val archivo = rootProject.file("local.properties")
     if (archivo.exists()) archivo.inputStream().use { props.load(it) }
-    props.getProperty("api.baseUrl") ?: "http://10.0.2.2:8080/"
+    props.getProperty("api.baseUrl") ?: "http://192.168.0.58:8080/"
 }
 
 android {
