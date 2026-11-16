@@ -35,8 +35,12 @@ class FeriaService(
         private const val MAX_FILAS = 30
     }
 
-    fun obtenerTodas(): List<FeriaResponseDto> =
-        feriaRepository.findAll().map { it.conPuestosLibres() }
+    fun obtenerTodas(): List<FeriaResponseDto> {
+        val hoy = LocalDate.now().toString()
+        return feriaRepository.findAll()
+            .filter { it.fecha >= hoy }
+            .map { it.conPuestosLibres() }
+    }
 
     fun obtenerDeOrganizador(organizadorId: Long): List<FeriaResponseDto> =
         feriaRepository.findByOrganizadorId(organizadorId).map { it.conPuestosLibres() }

@@ -41,13 +41,32 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
 import edu.uadeapps.feriapp.ui.components.AvisoCard
 import edu.uadeapps.feriapp.ui.components.BotonPrimario
 import edu.uadeapps.feriapp.ui.components.CampoTexto
 import edu.uadeapps.feriapp.ui.components.EncabezadoFeri
 import edu.uadeapps.feriapp.ui.components.TipoAviso
 import edu.uadeapps.feriapp.ui.theme.FeriColors
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PublicarFeriaScreen(
     onVolverClick: () -> Unit,
@@ -84,11 +103,26 @@ fun PublicarFeriaScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             CampoTexto("Nombre de la feria", nombre, { nombre = it }, placeholder = "Feria de las Artes")
-            CampoTexto("Fecha (AAAA-MM-DD)", fecha, { fecha = it }, placeholder = "2026-12-20", tipoTeclado = KeyboardType.Number)
+            
+            // Selector de fecha con calendario precargado
+            FechaPickerField(fecha = fecha, onFechaSelected = { fecha = it })
+
+            // Selectores desplegables para Hora de Inicio y Hora de Fin
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                CampoTexto("Desde (HH:mm)", horaInicio, { horaInicio = it }, modifier = Modifier.weight(1f))
-                CampoTexto("Hasta (HH:mm)", horaFin, { horaFin = it }, modifier = Modifier.weight(1f))
+                HoraDropdownField(
+                    label = "Desde (HH:mm)",
+                    selectedTime = horaInicio,
+                    onTimeSelected = { horaInicio = it },
+                    modifier = Modifier.weight(1f)
+                )
+                HoraDropdownField(
+                    label = "Hasta (HH:mm)",
+                    selectedTime = horaFin,
+                    onTimeSelected = { horaFin = it },
+                    modifier = Modifier.weight(1f)
+                )
             }
+
             CampoTexto("Dirección", direccion, { direccion = it }, placeholder = "Av. Santa Fe 1234")
             CampoTexto("Zona / barrio", zona, { zona = it }, placeholder = "Palermo")
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -132,6 +166,136 @@ fun PublicarFeriaScreen(
                 cargando = estado.publicando,
                 modifier = Modifier.fillMaxWidth().navigationBarsPadding()
             )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun FechaPickerField(
+    fecha: String,
+    onFechaSelected: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var showDatePicker by remember { mutableStateOf(false) }
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = System.currentTimeMillis()
+    )
+
+    Column(modifier = modifier) {
+        Text("Fecha de la feria", fontSize = 14.sp, color = Color.DarkGray)
+        Spacer(modifier = Modifier.height(6.dp))
+        OutlinedTextField(
+            value = fecha,
+            onValueChange = {},
+            readOnly = true,
+            placeholder = { Text("2026-12-20", color = Color.Gray) },
+            trailingIcon = {
+                IconButton(onClick = { showDatePicker = true }) {
+                    Icon(
+                        imageVector = Icons.Default.DateRange,
+                        contentDescription = "Seleccionar fecha",
+                        tint = FeriColors.Primario
+                    )
+                }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { showDatePicker = true },
+            enabled = false,
+            colors = OutlinedTextFieldDefaults.colors(
+                disabledBorderColor = Color.LightGray,
+                disabledLabelColor = Color.Gray,
+                disabledTextColor = Color.Black,
+                disabledTrailingIconColor = FeriColors.Primario,
+                disabledPlaceholderColor = Color.Gray
+            ),
+            shape = RoundedCornerShape(12.dp)
+        )
+    }
+
+    if (showDatePicker) {
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
+                                timeZone = TimeZone.getTimeZone("UTC")
+                            }
+                            onFechaSelected(formatter.format(Date(millis)))
+                        }
+                        showDatePicker = false
+                    }
+                ) {
+                    Text("Aceptar", color = FeriColors.Primario)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("Cancelar", color = Color.Gray)
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun HoraDropdownField(
+    label: String,
+    selectedTime: String,
+    onTimeSelected: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val horas = listOf(
+        "08:00", "09:00", "10:00", "11:00", "12:00",
+        "13:00", "14:00", "15:00", "16:00", "17:00",
+        "18:00", "19:00", "20:00", "21:00", "22:00"
+    )
+    var expanded by remember { mutableStateOf(false) }
+
+    Column(modifier = modifier) {
+        Text(label, fontSize = 14.sp, color = Color.DarkGray)
+        Spacer(modifier = Modifier.height(6.dp))
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = !expanded },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            OutlinedTextField(
+                value = selectedTime,
+                onValueChange = {},
+                readOnly = true,
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                modifier = Modifier
+                    .menuAnchor()
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedBorderColor = Color.LightGray,
+                    focusedBorderColor = FeriColors.Primario,
+                    unfocusedContainerColor = Color.Transparent,
+                    focusedContainerColor = Color.Transparent
+                )
+            )
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                horas.forEach { hora ->
+                    DropdownMenuItem(
+                        text = { Text(hora) },
+                        onClick = {
+                            onTimeSelected(hora)
+                            expanded = false
+                        }
+                    )
+                }
+            }
         }
     }
 }
